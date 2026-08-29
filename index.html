@@ -26,7 +26,11 @@
 
   body{
     background:var(--bg); color:var(--ink);
-    font-family:var(--font); font-weight:300;
+    /* 500 (Medium), not 300 (Light) — at small sizes with wide letter-
+       spacing, Light strokes stay hard to read even at high colour
+       contrast. #title pins its own 300 below, so the big display type
+       keeps its lighter look; only the small UI labels get bolder. */
+    font-family:var(--font); font-weight:500;
     overflow:hidden; -webkit-font-smoothing:antialiased;
     user-select:none; -webkit-user-select:none;
   }
@@ -274,10 +278,6 @@
   }
   .hint.on{opacity:1; visibility:visible;}
 
-  .hint .hname{
-    font-size:clamp(19px,3vw,34px); font-weight:300; letter-spacing:-.01em;
-    color:var(--ink); text-shadow:0 0 50px rgba(0,0,0,.9);
-  }
   .hint .hrule{
     width:clamp(110px,15vw,190px); height:1px;
     background:linear-gradient(90deg,transparent,var(--dimmer),transparent);
