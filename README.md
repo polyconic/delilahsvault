@@ -1,11 +1,9 @@
 # Delilah's Vault
 
-A station that is always on.
+A station that is always on. Playing drones and strange footage. It's like treasure.
 
-What plays is a pure function of the clock — nothing is stored, nothing is
-random at runtime — so everyone who arrives at the same moment hears the same
-thing, already in progress. There is no pause, no rewind and no way to pick a
-track.
+What plays is a pure function of the clock so everyone who arrives at the same moment hears the same
+thing, already in progress.
 
 The station keeps its own time zone rather than the visitor's, and the day is
 divided into blocks that each sound and look different.
@@ -90,7 +88,3 @@ Video loops, all from archive.org:
 | Introduction to the Cathode Ray Oscilloscope | not stated |
 | Learning About Sound (2nd Ed) | courtesy Encyclopedia Britannica |
 | Welcome To Cyberia | not stated |
-
-The three at the bottom of that table have no clear licence on the source item.
-That is fine for private use, but worth resolving before this is published
-anywhere public.
