@@ -12,10 +12,12 @@ const STATION = {
   name:  "DELILAH'S VAULT",     // shown on the page
   title: "Delilah's Vault",     // browser tab
 
-  // The station keeps its own time. Offset in hours from UTC.
-  // Change this and the whole day's programming shifts with it.
+  // The station broadcasts from Reykjavik, Iceland — which is UTC+0
+  // year-round (no DST observed), so this offset happens to be 0. If
+  // Iceland ever changes that, this is the only number to touch.
+  // Change it and the whole day's programming shifts with it.
   tzOffset: 0,
-  tzLabel:  "STATION TIME",
+  tzLabel:  "ICELAND TIME",
 
   // Never change once live — the day counter is measured from here.
   // Set so today reads Day 2; it climbs by one every real day from now on.
@@ -28,18 +30,59 @@ const STATION = {
    accurate — the entire broadcast clock is built on these numbers.
    ------------------------------------------------------------------ */
 const LIBRARY = {
-  // ---- Manormouse, "Never Fully Recovered EP" (Bruno Tozzini)
-  //      archive.org · CC BY-NC-SA 3.0 · attribution required ----
-  floor13:       { title:"13TH FLOOR",    by:"Manormouse",
-                   file:"audio/floor13.m4a",       duration:262.79 },
-  superstitious: { title:"SUPERSTITIOUS", by:"Manormouse",
-                   file:"audio/superstitious.m4a", duration:181.39 },
-  highstate:     { title:"HIGH STATE",    by:"Manormouse",
-                   file:"audio/highstate.m4a",     duration:196.23 },
-  shoot:         { title:"SHOOT",         by:"Manormouse",
-                   file:"audio/shoot.m4a",         duration:240.07 },
-  lowonice:      { title:"LOW ON ICE",    by:"Manormouse",
-                   file:"audio/lowonice.m4a",      duration:296.52 },
+  // Greg's own back-catalogue — no licence to track, no attribution needed.
+  metaphysics:        { title:"METAPHYSICS",
+                        file:"audio/metaphysics.m4a",            duration:316.00 },
+  ethereal:           { title:"ETHEREAL",
+                        file:"audio/ethereal.m4a",                duration:134.06 },
+  noforest:           { title:"NO FOREST",
+                        file:"audio/noforest.m4a",                duration:314.00 },
+  beautifulview:      { title:"BEAUTIFUL VIEW",
+                        file:"audio/beautifulview.m4a",           duration:194.00 },
+  avillainnarrative:  { title:"A VILLAIN NARRATIVE",
+                        file:"audio/avillainnarrative.m4a",       duration:206.00 },
+  usandvoyager:       { title:"US & VOYAGER",
+                        file:"audio/usandvoyager.m4a",            duration:140.00 },
+  theevening:         { title:"THE EVENING",
+                        file:"audio/theevening.m4a",              duration:105.00 },
+  parallelearthcycle: { title:"PARALLEL EARTH CYCLE",
+                        file:"audio/parallelearthcycle.m4a",      duration:116.00 },
+  interstellar:       { title:"INTERSTELLAR!",
+                        file:"audio/interstellar.m4a",            duration:236.00 },
+  leavingearth:       { title:"LEAVING EARTH",
+                        file:"audio/leavingearth.m4a",            duration:212.00 },
+  hypotheticalpoint:  { title:"A HYPOTHETICAL POINT IN TIME",
+                        file:"audio/ahypotheticalpointintime.m4a",duration:64.05  },
+  avillainconclusion: { title:"A VILLAIN CONCLUSION",
+                        file:"audio/avillainconclusion.m4a",      duration:234.00 },
+  artificialinterlude:{ title:"ARTIFICIAL (INTERLUDE)",
+                        file:"audio/artificialinterlude.m4a",     duration:34.06  },
+  byansel:            { title:"BY ANSEL",
+                        file:"audio/byansel.m4a",                 duration:102.06 },
+  electronicmontage:  { title:"ELECTRONIC MONTAGE INTRO",
+                        file:"audio/electronicmontageintro.m4a",  duration:74.00  },
+  forgottenentity:    { title:"FORGOTTEN ENTITY FOUND AGAIN",
+                        file:"audio/forgottenentityfoundagain.m4a",duration:70.06 },
+  howcanthey:         { title:"HOW CAN THEY EXPLAIN US",
+                        file:"audio/howcantheyexplainus.m4a",     duration:130.06 },
+  introwaveorian:     { title:"INTRO TO THE WAVEORIAN",
+                        file:"audio/introtothewaveorian.m4a",     duration:50.08  },
+  foundupintheair:    { title:"IT IS FOUND UP IN THE AIR",
+                        file:"audio/itisfoundupintheair.m4a",     duration:120.06 },
+  lyricalhappiness:   { title:"LYRICAL HAPPINESS",
+                        file:"audio/lyricalhappiness.m4a",        duration:102.06 },
+  memorable:          { title:"MEMORABLE",
+                        file:"audio/memorable.m4a",               duration:264.00 },
+  relevance:          { title:"RELEVANCE & RELATIVITY",
+                        file:"audio/relevanceandrelativity.m4a",  duration:118.07 },
+  somethingspecial:   { title:"SOMETHING SPECIAL",
+                        file:"audio/somethingspecial.m4a",        duration:141.56 },
+  todayisnotless:     { title:"TODAY IS NOT LESS TIME",
+                        file:"audio/todayisnotlesstime.m4a",      duration:38.06  },
+  wavorian:           { title:"WAVORIAN",
+                        file:"audio/wavorian.m4a",                duration:133.07 },
+  lovedithere:        { title:"YOU WOULD HAVE LOVED IT HERE",
+                        file:"audio/youwouldhavelovedithere.m4a", duration:200.00 },
 };
 
 
@@ -88,7 +131,9 @@ const SCHEDULE = [
     mode:  "playlist",
     visual:"spectrum",
     video: mix('cyberia','pirate'),
-    items: [LIBRARY.lowonice, LIBRARY.shoot, LIBRARY.floor13],
+    // deep, mysterious — the tracks that read as "late and alone"
+    items: [LIBRARY.metaphysics, LIBRARY.wavorian, LIBRARY.forgottenentity,
+            LIBRARY.artificialinterlude, LIBRARY.byansel, LIBRARY.introwaveorian],
   },
   {
     start: 4,
@@ -111,12 +156,14 @@ const SCHEDULE = [
   {
     start: 10,
     name:  "DAY SERVICE",
-    note:  "from the archive",
+    note:  "",
     mode:  "playlist",
     visual:"drift",
     video: mix('sound','highway'),
-    items: [LIBRARY.floor13, LIBRARY.superstitious, LIBRARY.highstate,
-            LIBRARY.shoot, LIBRARY.lowonice],
+    // calm, open, unhurried — the daytime tracks
+    items: [LIBRARY.ethereal, LIBRARY.noforest, LIBRARY.beautifulview,
+            LIBRARY.hypotheticalpoint, LIBRARY.electronicmontage,
+            LIBRARY.relevance, LIBRARY.todayisnotless],
   },
   {
     start: 15,
@@ -134,8 +181,10 @@ const SCHEDULE = [
     mode:  "playlist",
     visual:"horizon",
     video: mix('pirate','manormouse'),
-    items: [LIBRARY.highstate, LIBRARY.lowonice,
-            LIBRARY.superstitious, LIBRARY.floor13],
+    // reflective, warm, a little wistful — the tracks that read as dusk
+    items: [LIBRARY.theevening, LIBRARY.leavingearth, LIBRARY.lovedithere,
+            LIBRARY.parallelearthcycle, LIBRARY.memorable,
+            LIBRARY.foundupintheair, LIBRARY.lyricalhappiness],
   },
   {
     start: 21,
@@ -144,7 +193,10 @@ const SCHEDULE = [
     mode:  "playlist",
     visual:"spectrum",
     video: mix('cyberia','manormouse'),
-    items: [LIBRARY.shoot, LIBRARY.floor13, LIBRARY.lowonice],
+    // dramatic, propulsive — builds toward the night
+    items: [LIBRARY.avillainnarrative, LIBRARY.avillainconclusion,
+            LIBRARY.usandvoyager, LIBRARY.interstellar,
+            LIBRARY.howcanthey, LIBRARY.somethingspecial],
   },
 ];
 

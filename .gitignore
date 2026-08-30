@@ -2,3 +2,7 @@
 *.log
 __pycache__/
 .claude/
+
+# raw WAV/MP3 sources — the site only ever serves the encoded copies in
+# audio/. 723MB of masters has no business in a static site's git history.
+tracks/
