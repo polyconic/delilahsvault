@@ -301,7 +301,6 @@
   /* ---------- start ---------------------------------------------- */
 
   $('#stationName').textContent = STATION.name;
-  $('#tzLabel').textContent     = STATION.tzLabel;
   document.title = STATION.title;
 
   Visuals.init($('#viz'));

@@ -17,7 +17,6 @@ const STATION = {
   // Iceland ever changes that, this is the only number to touch.
   // Change it and the whole day's programming shifts with it.
   tzOffset: 0,
-  tzLabel:  "ICELAND TIME",
 
   // Never change once live — the day counter is measured from here.
   // Set so today reads Day 2; it climbs by one every real day from now on.
