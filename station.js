@@ -18,7 +18,8 @@ const STATION = {
   tzLabel:  "STATION TIME",
 
   // Never change once live — the day counter is measured from here.
-  epoch: 1735689600,            // 2025-01-01 00:00:00 UTC
+  // Set so today reads Day 2; it climbs by one every real day from now on.
+  epoch: 1787875200,            // 2026-08-28 00:00:00 UTC
 };
 
 
