@@ -141,24 +141,6 @@ const Synth = (function(){
       },
       move(t){ return 0.5 + 0.5*Math.sin(t*0.008); }
     },
-
-    /* 15:00 — an interval signal. mostly silence. the point is the
-       waiting. */
-    interval: {
-      every: 34,
-      build(verb){
-        osc('sine', 73.4, 0.075);
-        noiseBed(0.006, verb);
-      },
-      event(i, verb){
-        const r = rng(i*7919);
-        if(r() < 0.35) return;
-        const f = [330, 392, 440, 494][Math.floor(r()*4)];
-        ping(f, 3.4, 0.085, verb);
-        if(r() < 0.5) setTimeout(()=>ping(f, 3.0, 0.05, verb), 1500);
-      },
-      move(t){ return 0.5 + 0.5*Math.sin(t*0.021); }
-    },
   };
 
   /* ---------------- api ----------------------------------------- */

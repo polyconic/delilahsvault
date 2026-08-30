@@ -135,7 +135,11 @@ const SCHEDULE = [
             LIBRARY.artificialinterlude, LIBRARY.byansel, LIBRARY.introwaveorian],
   },
   {
-    start: 4,
+    // 07:00–11:00 UTC is the one window that's genuinely nighttime in
+    // every continental US timezone at once (11pm–6am local, worked out
+    // across all four zones) — that's who's actually listening, so the
+    // generative hours live here rather than on Iceland's own clock.
+    start: 7,
     name:  "CARRIER",
     note:  "the signal, unattended",
     mode:  "generative",
@@ -144,7 +148,7 @@ const SCHEDULE = [
     video: mix('cro','torus'),
   },
   {
-    start: 6,
+    start: 9,
     name:  "FIRST LIGHT",
     note:  "slow music for an empty hour",
     mode:  "generative",
@@ -153,7 +157,10 @@ const SCHEDULE = [
     video: mix('highway','sound'),
   },
   {
-    start: 10,
+    // absorbs what used to be the INTERVAL slot (15:00–17:00) — that sat
+    // at 10am–noon Eastern / 7–9am Pacific, i.e. the middle of the US
+    // workday, which is the worst possible time to have nothing playing.
+    start: 11,
     name:  "DAY SERVICE",
     note:  "",
     mode:  "playlist",
@@ -163,15 +170,6 @@ const SCHEDULE = [
     items: [LIBRARY.ethereal, LIBRARY.noforest, LIBRARY.beautifulview,
             LIBRARY.hypotheticalpoint, LIBRARY.electronicmontage,
             LIBRARY.relevance, LIBRARY.todayisnotless],
-  },
-  {
-    start: 15,
-    name:  "INTERVAL",
-    note:  "nothing is scheduled",
-    mode:  "generative",
-    preset:"interval",
-    visual:"testcard",
-    video: mix('torus','cro'),
   },
   {
     start: 17,
