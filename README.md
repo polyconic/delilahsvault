@@ -19,8 +19,7 @@ is split into blocks that each sound and look different:
 | 21:00 | LATE TRANSMISSION | music                |
 
 The **generated live** blocks are not audio files at all. They're built in
-the browser out of oscillators and noise while you listen, and have never
-played before.
+the browser out of oscillators and noise.
 
 ## Running it locally
 
