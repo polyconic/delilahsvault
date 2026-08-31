@@ -252,8 +252,15 @@
      visitors never saw it and the music simply started on its own. */
   .gate{
     position:fixed; inset:0; z-index:10;
-    background:radial-gradient(60vw 50vw at 50% 50%,
-                 rgba(240,240,240,.05), transparent 70%), var(--bg);
+    /* translucent so the station is visibly already running behind it
+       — the video and the HUD show through, which is the whole point of
+       "already in progress". The centre is darkened further because the
+       gate text lands directly on top of the huge track title, and the
+       two were competing. */
+    background:radial-gradient(42vw 34vw at 50% 50%,
+                 rgba(15,15,15,.62), transparent 72%),
+               rgba(15,15,15,.55);
+    backdrop-filter:blur(2px);
     display:flex; flex-direction:column;
     align-items:center; justify-content:center; gap:clamp(20px,2.8vw,32px);
     cursor:pointer;
@@ -264,7 +271,7 @@
   .gate .gname{
     font-size:clamp(26px,4.6vw,58px); font-weight:300;
     letter-spacing:-.01em; color:var(--ink);
-    text-shadow:0 0 55px rgba(240,240,240,.18);
+    text-shadow:0 0 30px rgba(15,15,15,.95), 0 0 60px rgba(15,15,15,.8);
   }
   .gate .grule{
     width:clamp(120px,17vw,220px); height:1px;
