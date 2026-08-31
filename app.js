@@ -13,6 +13,7 @@
 
   let ac, mix, master, analyser, mediaSrc;
   let curBlock = -1, curItem = -1, curVideo = -1;
+  let transitioning = false, transitionTimer = null;
   let started = false;
 
   /* ---------- station clock -------------------------------------- */
@@ -86,6 +87,7 @@
   }
 
   function seekAndPlay(){
+    transitioning = false;
     const s = onAir();
     if(s.idx !== curBlock || s.block.mode !== 'playlist') return;
     const p = playlistPos(s.block, s.elapsed, s.day);
@@ -182,6 +184,14 @@
         $('#trkTot').textContent = s.block.items.length;
         $('#upnext').textContent =
           'up next — ' + s.block.items[(p.i+1) % s.block.items.length].title;
+
+        // au.load() briefly makes au.paused true while the new file's
+        // metadata loads — a normal gap, not a browser autoplay block.
+        // Suppress the "click for sound" check until playback resumes,
+        // with a timeout so a genuine stall still gets caught.
+        transitioning = true;
+        clearTimeout(transitionTimer);
+        transitionTimer = setTimeout(()=>{ transitioning = false; }, 4000);
 
         au.addEventListener('loadedmetadata', seekAndPlay, {once:true});
         au.src = item.file;
@@ -299,7 +309,7 @@
 
   function audible(){
     return ac && ac.state === 'running' &&
-           (onAir().block.mode !== 'playlist' || !au.paused);
+           (onAir().block.mode !== 'playlist' || !au.paused || transitioning);
   }
 
   function paintSound(){
