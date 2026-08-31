@@ -316,15 +316,13 @@
      The picture and the clock run either way — muted video autoplays
      fine — so the page never looks like it's waiting for permission. */
 
-  let muted = false;
-
   function audible(){
     return ac && ac.state === 'running' &&
            (onAir().block.mode !== 'playlist' || !au.paused);
   }
 
   function paintSound(){
-    const on = audible() && !muted;
+    const on = audible() && volume > 0.001;
     const t = $('#soundToggle');
     t.textContent = on ? 'sound' : 'sound off';
     t.classList.toggle('off', !on);
@@ -340,20 +338,84 @@
     setTimeout(paintSound, 350);
   }
 
-  function setMuted(m){
-    muted = m;
-    if(master) master.gain.setTargetAtTime(m ? 0 : 1, ac.currentTime, 0.12);
+  /* ---------- volume slider ---------------------------------------
+     A continuous 0–1 value rather than the old on/off mute. The mute
+     button becomes shorthand for "set it to 0, remember what it was". */
+
+  let volume = 1, lastVolume = 1;
+
+  function updateVolUI(v){
+    const pct = Math.round(v*100);
+    $('#volFill').style.height  = pct + '%';
+    $('#volThumb').style.bottom = pct + '%';
+    $('#volLabel').textContent  = pct;
+    $('#volwrap').setAttribute('aria-valuenow', pct);
+  }
+
+  function applyVolume(v, instant){
+    volume = Math.max(0, Math.min(1, v));
+    if(master) master.gain.setTargetAtTime(volume, ac.currentTime, instant ? 0.001 : 0.05);
+    updateVolUI(volume);
+    try{ localStorage.setItem('delilah-volume', volume); }catch(e){}
     paintSound();
+  }
+
+  function toggleMute(){
+    if(volume > 0.001){ lastVolume = volume; applyVolume(0); }
+    else{ applyVolume(lastVolume || 1); }
   }
 
   $('#soundToggle').addEventListener('click', e=>{
     e.stopPropagation();
     if(!audible()){ nudge(); return; }   // not started yet — start it
-    setMuted(!muted);
+    toggleMute();
+  });
+
+  // drag / click on the track
+  const voltrack = $('#voltrack');
+  let dragging = false;
+
+  function volFromEvent(e){
+    const rect = voltrack.getBoundingClientRect();
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    return Math.max(0, Math.min(1, (rect.bottom - y) / rect.height));
+  }
+
+  voltrack.addEventListener('pointerdown', e=>{
+    dragging = true;
+    voltrack.classList.add('dragging');
+    voltrack.setPointerCapture(e.pointerId);
+    applyVolume(volFromEvent(e));
+  });
+  voltrack.addEventListener('pointermove', e=>{
+    if(dragging) applyVolume(volFromEvent(e));
+  });
+  ['pointerup','pointercancel'].forEach(ev => voltrack.addEventListener(ev, ()=>{
+    dragging = false;
+    voltrack.classList.remove('dragging');
+  }));
+
+  // arrow keys when the control has focus
+  $('#volwrap').addEventListener('keydown', e=>{
+    const step = 0.05;
+    if(e.key==='ArrowUp'   || e.key==='ArrowRight'){ applyVolume(volume+step); e.preventDefault(); }
+    else if(e.key==='ArrowDown' || e.key==='ArrowLeft'){  applyVolume(volume-step); e.preventDefault(); }
+    else if(e.key==='Home'){ applyVolume(0); e.preventDefault(); }
+    else if(e.key==='End'){  applyVolume(1); e.preventDefault(); }
   });
 
   started = true;
   buildGraph();
+
+  // restore last session's level, applied instantly (no fade-up on load)
+  let savedVol = 1;
+  try{
+    const raw = parseFloat(localStorage.getItem('delilah-volume'));
+    if(!isNaN(raw)) savedVol = raw;
+  }catch(e){}
+  applyVolume(savedVol, true);
+  lastVolume = savedVol > 0.001 ? savedVol : 1;
+
   tuneTo();
   hud();
   nudge();
