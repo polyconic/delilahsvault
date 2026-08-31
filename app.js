@@ -162,6 +162,7 @@
         // let the italic note carry the line on its own
         $('#blockName').textContent = '';
         $('#title').textContent     = s.block.name;
+        fitTitle();
         $('#by').textContent        = '';
         $('#counter').style.display = 'none';
         $('#upnext').textContent = 'up next — ' + nextBlock().name;
@@ -183,6 +184,7 @@
         const item = s.block.items[p.i];
 
         $('#title').textContent = item.title;
+        fitTitle();
         $('#by').textContent    = item.by ? item.by + ' ·' : '';
         $('#trkNo').textContent = p.i + 1;
         $('#trkTot').textContent = s.block.items.length;
@@ -212,6 +214,44 @@
     const s = onAir();
     return SCHEDULE[(s.idx+1) % SCHEDULE.length];
   }
+
+  /* ---------- fitting the title ----------------------------------
+     The title is set in vw, which is fine until a long word is simply
+     wider than a phone screen — words can't break, so it spills off the
+     edge. Measure the widest word and scale down only when it doesn't
+     fit, so short titles keep their full size. */
+
+  const titleEl = $('#title');
+  let measureCtx = null;
+
+  function fitTitle(){
+    titleEl.style.fontSize = '';               // back to the CSS size
+    const avail = titleEl.clientWidth;
+    if(!avail) return;
+
+    const cs   = getComputedStyle(titleEl);
+    const base = parseFloat(cs.fontSize);
+    measureCtx = measureCtx || document.createElement('canvas').getContext('2d');
+    measureCtx.font = `${cs.fontWeight} ${base}px ${cs.fontFamily}`;
+
+    let widest = 0;
+    for(const w of titleEl.textContent.trim().split(/\s+/)){
+      widest = Math.max(widest, measureCtx.measureText(w).width);
+    }
+    if(widest > avail){
+      titleEl.style.fontSize = Math.floor(base * (avail / widest)) + 'px';
+    }
+
+    // a very long title can still stack up too many lines
+    const maxH = innerHeight * 0.42;
+    let guard = 0;
+    while(titleEl.offsetHeight > maxH && guard++ < 12){
+      titleEl.style.fontSize =
+        (parseFloat(getComputedStyle(titleEl).fontSize) * 0.9) + 'px';
+    }
+  }
+
+  addEventListener('resize', fitTitle);
 
   /* ---------- the HUD -------------------------------------------- */
 
