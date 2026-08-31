@@ -26,11 +26,12 @@
 
   body{
     background:var(--bg); color:var(--ink);
-    /* 500 (Medium), not 300 (Light) — at small sizes with wide letter-
-       spacing, Light strokes stay hard to read even at high colour
-       contrast. #title pins its own 300 below, so the big display type
-       keeps its lighter look; only the small UI labels get bolder. */
-    font-family:var(--font); font-weight:500;
+    /* 700 (Bold) — 500 wasn't enough. This font has no true Semibold on
+       this system (checked: weight 600 and 700 render at an identical
+       width, both heavier than 500), so there's no middle ground between
+       Medium and full Bold — went with Bold. #title pins its own 300
+       below, so the big display type keeps its lighter look. */
+    font-family:var(--font); font-weight:700;
     overflow:hidden; -webkit-font-smoothing:antialiased;
     user-select:none; -webkit-user-select:none;
   }
