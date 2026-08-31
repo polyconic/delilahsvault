@@ -1,14 +1,12 @@
 # Delilah's Vault
 
-A radio station that's always live: delilahsvault.com
+A stream in perpetuity: delilahsvault.com
 
-It's a website, not an app or a stream server — just static files — but it
-behaves like a real 24-hour station. There's no play button and no track
+Just static files, but it behaves like a real 24-hour station. There's no play button and no track
 list to browse. You just arrive, and whatever's on is already in progress,
-the same for every listener at that moment, because what plays is worked out
-from the current time rather than stored anywhere.
+the same for every listener at that moment. 
 
-The station keeps its own clock (not the visitor's local time), and the day
+The station keeps its own clock, based in Iceland, and the day
 is split into blocks that each sound and look different:
 
 | from  | block             | what plays          |
@@ -20,12 +18,8 @@ is split into blocks that each sound and look different:
 | 17:00 | THE LONG EVENING  | music                |
 | 21:00 | LATE TRANSMISSION | music                |
 
-The **generated live** blocks aren't audio files at all — they're built in
-the browser out of oscillators and noise while you listen, and have never
-played before. They're still perfectly in sync for everyone: the sound is
-driven by a formula seeded from the clock, so two people tuned in at the
-same moment hear the exact same thing, even though it's being made up on
-the spot.
+The **generated live** blocks are not audio files at all. They're built in
+the browser out of oscillators and noise.
 
 ## Running it locally
 
@@ -41,7 +35,7 @@ like the real site.
 
 ## Deploying
 
-It's entirely static — no build step, no backend, no environment variables.
+It's static so no build step, no backend, and no environment variables.
 Point any static host at the repo and it works. Currently deployed on
 GitHub Pages.
 
@@ -73,7 +67,7 @@ archive.org without downloading the full source file.
 
 ## Credits
 
-Music is Greg's own. Background video is short muted clips from archive.org:
+Music is Gregor's own work from 2020 to 2023. Background video is short muted clips from archive.org:
 
 | source | licence |
 |---|---|
