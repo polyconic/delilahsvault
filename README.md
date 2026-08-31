@@ -1,6 +1,6 @@
 # Delilah's Vault
 
-A stream in perpetuity that's always live: delilahsvault.com
+A stream in perpetuity: delilahsvault.com
 
 Just static files, but it behaves like a real 24-hour station. There's no play button and no track
 list to browse. You just arrive, and whatever's on is already in progress,
