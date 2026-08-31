@@ -14,6 +14,7 @@
   let ac, mix, master, analyser, mediaSrc;
   let curBlock = -1, curItem = -1, curVideo = -1;
   let transitioning = false, transitionTimer = null;
+  let tunedIn = false;   // false until the gate is actually clicked
   let started = false;
 
   /* ---------- station clock -------------------------------------- */
@@ -83,7 +84,9 @@
     mediaSrc.connect(mix);
 
     Visuals.setAnalyser(analyser);
-    if(ac.state === 'suspended') ac.resume();
+    // deliberately NOT resumed here — the context stays suspended until
+    // the gate is clicked, otherwise a browser that allows autoplay
+    // would play the station out loud behind the gate
   }
 
   function seekAndPlay(){
@@ -92,7 +95,8 @@
     if(s.idx !== curBlock || s.block.mode !== 'playlist') return;
     const p = playlistPos(s.block, s.elapsed, s.day);
     if(p.i === curItem){ try{ au.currentTime = p.off; }catch(e){} }
-    au.play().catch(()=>{});
+    // seek it into position but stay silent until the gate is opened
+    if(tunedIn) au.play().catch(()=>{});
   }
 
   /* ---------- picture -------------------------------------------- */
@@ -200,7 +204,7 @@
       }
 
       try{ au.currentTime = p.off; }catch(e){}
-      au.play().catch(()=>{});
+      if(tunedIn) au.play().catch(()=>{});
     }
   }
 
@@ -292,23 +296,22 @@
   /* ---------- start ---------------------------------------------- */
 
   $('#stationName').textContent = STATION.name;
+  $('#gateName').textContent    = STATION.title;
   document.title = STATION.title;
 
   Visuals.init($('#viz'));
   buildSchedule();
   setInterval(markSchedule, 5000);
 
-  /* No front door. The station is simply already on when you arrive.
-
-     Browsers won't let a page make noise until it has been interacted
-     with, so: build everything and start it immediately, then check
-     whether the browser actually allowed it. If it didn't, the first
-     click/key/touch anywhere starts the sound, and a quiet line says so.
-     The picture and the clock run either way — muted video autoplays
-     fine — so the page never looks like it's waiting for permission. */
+  /* The gate is unconditional: it is always shown and only a real click
+     opens it. Deciding by "did the browser block autoplay" doesn't work
+     — browsers grant autoplay to sites you've already interacted with,
+     so anyone returning would be dropped straight into playing audio
+     with no way to choose. Everything else (clock, HUD, muted video)
+     runs behind it, so the station really is already in progress. */
 
   function audible(){
-    return ac && ac.state === 'running' &&
+    return tunedIn && ac && ac.state === 'running' &&
            (onAir().block.mode !== 'playlist' || !au.paused || transitioning);
   }
 
@@ -317,17 +320,34 @@
     const t = $('#soundToggle');
     t.textContent = on ? 'sound' : 'sound off';
     t.classList.toggle('off', !on);
-    // the prompt is only for the browser blocking us, never for a
-    // deliberate mute
-    $('#hint').classList.toggle('on', !audible());
   }
 
   function nudge(){
-    if(!ac) return;
+    if(!ac || !tunedIn) return;
     if(ac.state === 'suspended') ac.resume().catch(()=>{});
     if(onAir().block.mode === 'playlist') au.play().catch(()=>{});
     setTimeout(paintSound, 350);
   }
+
+  function tuneIn(){
+    if(tunedIn) return;
+    tunedIn = true;
+    $('#gate').classList.add('gone');
+
+    if(ac && ac.state === 'suspended') ac.resume().catch(()=>{});
+
+    // jump to wherever the station actually is right now, not to
+    // wherever the element happened to be left while gated
+    const s = onAir();
+    if(s.block.mode === 'playlist'){
+      const p = playlistPos(s.block, s.elapsed, s.day);
+      if(p.i === curItem){ try{ au.currentTime = p.off; }catch(e){} }
+      au.play().catch(()=>{});
+    }
+    setTimeout(paintSound, 350);
+  }
+
+  $('#gate').addEventListener('click', tuneIn);
 
   /* ---------- volume slider ---------------------------------------
      A continuous 0–1 value rather than the old on/off mute. The mute
@@ -375,7 +395,9 @@
   voltrack.addEventListener('pointerdown', e=>{
     dragging = true;
     voltrack.classList.add('dragging');
-    voltrack.setPointerCapture(e.pointerId);
+    // capture can throw on an unrecognised pointer id; must not abort
+    // the handler before the volume is actually applied
+    try{ voltrack.setPointerCapture(e.pointerId); }catch(err){}
     applyVolume(volFromEvent(e));
   });
   voltrack.addEventListener('pointermove', e=>{
@@ -407,14 +429,15 @@
   applyVolume(savedVol, true);
   lastVolume = savedVol > 0.001 ? savedVol : 1;
 
+
+  // The station runs from the moment the page loads — clock, HUD, video,
+  // and the audio element seeking to the live position — but the audio
+  // context stays suspended until the gate is clicked, so none of it is
+  // heard until then.
   tuneTo();
   hud();
-  nudge();
+  paintSound();
 
-  // any first interaction anywhere satisfies the browser's gesture rule
-  ['pointerdown','keydown','touchstart','wheel'].forEach(ev=>{
-    addEventListener(ev, nudge, {passive:true});
-  });
   setInterval(paintSound, 2000);
 
   $('#schedToggle').addEventListener('click', toggleSchedule);
