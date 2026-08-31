@@ -67,7 +67,7 @@ archive.org without downloading the full source file.
 
 ## Credits
 
-Music is Greg's own. Background video is short muted clips from archive.org:
+Music is Gregor's own work from 2020 to 2023. Background video is short muted clips from archive.org:
 
 | source | licence |
 |---|---|
