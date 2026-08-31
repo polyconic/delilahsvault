@@ -1,27 +1,31 @@
 # Delilah's Vault
 
-A station that is always on. Playing drones and strange footage. It's like treasure.
+A radio station that's always live: delilahsvault.com
 
-What plays is a pure function of the clock so everyone who arrives at the same moment hears the same
-thing, already in progress.
+It's a website, not an app or a stream server — just static files — but it
+behaves like a real 24-hour station. There's no play button and no track
+list to browse. You just arrive, and whatever's on is already in progress,
+the same for every listener at that moment, because what plays is worked out
+from the current time rather than stored anywhere.
 
-The station keeps its own time zone rather than the visitor's, and the day is
-divided into blocks that each sound and look different.
+The station keeps its own clock (not the visitor's local time), and the day
+is split into blocks that each sound and look different:
 
-| from  | block             | source        |
-|-------|-------------------|---------------|
-| 00:00 | NIGHT SHIFT       | recorded      |
-| 04:00 | CARRIER           | generated     |
-| 06:00 | FIRST LIGHT       | generated     |
-| 10:00 | DAY SERVICE       | recorded      |
-| 15:00 | INTERVAL          | generated     |
-| 17:00 | THE LONG EVENING  | recorded      |
-| 21:00 | LATE TRANSMISSION | recorded      |
+| from  | block             | what plays          |
+|-------|-------------------|----------------------|
+| 00:00 | NIGHT SHIFT       | music                |
+| 07:00 | CARRIER           | generated live       |
+| 09:00 | FIRST LIGHT       | generated live       |
+| 11:00 | DAY SERVICE       | music                |
+| 17:00 | THE LONG EVENING  | music                |
+| 21:00 | LATE TRANSMISSION | music                |
 
-Blocks marked **generated** are not files. They are synthesized in the browser
-as you listen, from oscillators and noise, and have never played before. They
-are still a broadcast: every audible decision comes from a clock-seeded PRNG,
-so two people listening at 04:00 hear the same drone.
+The **generated live** blocks aren't audio files at all — they're built in
+the browser out of oscillators and noise while you listen, and have never
+played before. They're still perfectly in sync for everyone: the sound is
+driven by a formula seeded from the clock, so two people tuned in at the
+same moment hear the exact same thing, even though it's being made up on
+the spot.
 
 ## Running it locally
 
@@ -31,57 +35,49 @@ python3 serve.py
 
 Then open <http://localhost:4747>.
 
-Use this rather than opening `index.html` directly. Python's built-in
-`http.server` ignores HTTP Range requests, which silently breaks seeking —
-the clock says 03:12 while the audio sits at 00:09. `serve.py` answers ranges
-properly and sends correct MIME types. Every real static host already does
-both, so this script only exists to make local preview behave like production.
+Don't just open `index.html` directly — Python's plain built-in server
+breaks audio seeking, and this script fixes that so local testing behaves
+like the real site.
 
 ## Deploying
 
-It is entirely static. Point any static host at the repository root — no build
-step, no server, no environment variables.
+It's entirely static — no build step, no backend, no environment variables.
+Point any static host at the repo and it works. Currently deployed on
+GitHub Pages.
 
-## Adding to the station
+## Adding or changing tracks
 
-Everything editable lives in [`station.js`](station.js):
+Everything you'd normally touch lives in one file: [`station.js`](station.js).
 
-- `STATION` — name, time zone, epoch
-- `LIBRARY` — one entry per track. `duration` is in **seconds and must be
-  accurate**; the whole broadcast clock is built on those numbers.
-- `SCHEDULE` — the day. Each block runs until the next one starts.
-- `FOOTAGE` — the video loops
-- `IDENTS` — the lines that surface between items
+- `LIBRARY` — one entry per track (title, audio file, exact length in seconds)
+- `SCHEDULE` — the day's blocks and what each one plays
+- `FOOTAGE` — the background video clips
+- `IDENTS` — the little lines that flash between tracks
 
-To add a track: put the file in `audio/`, add a line to `LIBRARY`, reference it
-from a block's `items`.
+To add a track: drop the audio file in `audio/`, add one line to `LIBRARY`,
+then list it in a block's `items` in `SCHEDULE`.
 
-`tools/fetch_footage.py` pulls new clips from archive.org. It never downloads a
-source whole — ffmpeg seeks over HTTP, so a 4 GB film costs only the seconds
-actually kept.
+`tools/fetch_footage.py` is a helper for pulling new video clips from
+archive.org without downloading the full source file.
 
 ## Files
 
 | | |
 |---|---|
-| `index.html` | markup and all styling |
-| `station.js` | **the only file you normally edit** |
-| `app.js` | clock, schedule resolution, audio graph, HUD |
-| `synth.js` | the generative blocks |
-| `visuals.js` | the four canvas modes |
-| `serve.py` | local preview server |
+| `index.html` | the page — layout and all styling |
+| `station.js` | the file you actually edit |
+| `app.js` | the clock logic, audio, and on-screen display |
+| `synth.js` | the generated-live blocks |
+| `visuals.js` | the background visual effects |
+| `serve.py` | local preview server only — not used in production |
 
 ## Credits
 
-The recorded music is **Manormouse — _Never Fully Recovered EP_** by Bruno
-Tozzini, from archive.org, under
-[CC BY-NC-SA 3.0](http://creativecommons.org/licenses/by-nc-sa/3.0/). The
-credit is shown on screen during playback because that licence requires it.
-
-Video loops, all from archive.org:
+Music is Greg's own. Background video is short muted clips from archive.org:
 
 | source | licence |
 |---|---|
+| Manormouse — video excerpt | Bruno Tozzini · CC BY-NC-SA 3.0 |
 | The many faces of a Torus | CC BY 3.0 |
 | The PIRATE UTOPIA Experiments — Vivid Tribe Of Psychics | CC BY-NC-SA 3.0 |
 | Freedom Highway (1956) | public domain |
