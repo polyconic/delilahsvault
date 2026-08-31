@@ -243,6 +243,14 @@
   }
   .crow i{font-style:italic;}
   .crow span:last-child{text-align:right; white-space:nowrap;}
+  /* inherit the white rather than take the browser's blue — a faint
+     rule marks them as links without breaking the monochrome */
+  .crow a{
+    color:inherit; text-decoration:none;
+    border-bottom:1px solid rgba(240,240,240,.3);
+    padding-bottom:1px; transition:border-color .3s;
+  }
+  .crow a:hover{border-bottom-color:var(--ink);}
   @media (max-width:600px){
     .crow{flex-direction:column; gap:1px; padding:6px 0;}
     .crow span:last-child{text-align:left;}
@@ -445,19 +453,45 @@
 
     <div class="credits">
       <div class="chead">Sources</div>
-      <div class="crow"><span>Manormouse — video excerpt</span>
-        <span>Bruno Tozzini · CC BY-NC-SA 3.0</span></div>
-      <div class="crow"><span>The many faces of a Torus</span>
-        <span>CC BY 3.0</span></div>
-      <div class="crow"><span>Freedom Highway (1956)</span>
+
+      <div class="crow">
+        <span><a href="https://archive.org/details/Manormouse-NeverFullyRecoveredEp"
+                 target="_blank" rel="noopener noreferrer">Manormouse — video excerpt</a></span>
+        <span>Bruno Tozzini ·
+          <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/"
+             target="_blank" rel="noopener noreferrer">CC BY-NC-SA 3.0</a></span></div>
+
+      <div class="crow">
+        <span><a href="https://archive.org/details/youtube-OHNXot0w7A0"
+                 target="_blank" rel="noopener noreferrer">The many faces of a Torus</a></span>
+        <span><a href="https://creativecommons.org/licenses/by/3.0/"
+                 target="_blank" rel="noopener noreferrer">CC BY 3.0</a></span></div>
+
+      <div class="crow">
+        <span><a href="https://archive.org/details/FreedomH1956"
+                 target="_blank" rel="noopener noreferrer">Freedom Highway (1956)</a></span>
         <span>public domain</span></div>
-      <div class="crow"><span>The PIRATE UTOPIA Experiments</span>
-        <span>Vivid Tribe Of Psychics · CC BY-NC-SA 3.0</span></div>
-      <div class="crow"><span>Introduction to the Cathode Ray Oscilloscope</span>
+
+      <div class="crow">
+        <span><a href="https://archive.org/details/AlbionMoonlightThePIRATEUTOPIAExperimentsVividTribeOfPsychics"
+                 target="_blank" rel="noopener noreferrer">The PIRATE UTOPIA Experiments</a></span>
+        <span>Vivid Tribe Of Psychics ·
+          <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/"
+             target="_blank" rel="noopener noreferrer">CC BY-NC-SA 3.0</a></span></div>
+
+      <div class="crow">
+        <span><a href="https://archive.org/details/introductiontothecathoderayoscilloscope"
+                 target="_blank" rel="noopener noreferrer">Introduction to the Cathode Ray Oscilloscope</a></span>
         <span>archive.org</span></div>
-      <div class="crow"><span>Learning About Sound (2nd Ed)</span>
+
+      <div class="crow">
+        <span><a href="https://archive.org/details/LearningAboutSound"
+                 target="_blank" rel="noopener noreferrer">Learning About Sound (2nd Ed)</a></span>
         <span>courtesy Encyclopedia Britannica</span></div>
-      <div class="crow"><span>Welcome To Cyberia</span>
+
+      <div class="crow">
+        <span><a href="https://archive.org/details/WelcomeToCyberia"
+                 target="_blank" rel="noopener noreferrer">Welcome To Cyberia</a></span>
         <span>archive.org</span></div>
     </div>
   </div>

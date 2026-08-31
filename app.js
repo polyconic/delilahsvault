@@ -441,8 +441,10 @@
   setInterval(paintSound, 2000);
 
   $('#schedToggle').addEventListener('click', toggleSchedule);
-  // clicking anywhere on the scrim closes it again
-  document.querySelector('.schedwrap').addEventListener('click', ()=>{
+  // clicking anywhere on the scrim closes it again — except on a link,
+  // which would otherwise shut the panel out from under the click
+  document.querySelector('.schedwrap').addEventListener('click', e=>{
+    if(e.target.closest('a')) return;
     document.body.classList.remove('sched-open');
   });
   addEventListener('keydown', e=>{
