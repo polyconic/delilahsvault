@@ -82,6 +82,21 @@ const LIBRARY = {
                         file:"audio/wavorian.m4a",                duration:133.12 },
   lovedithere:        { title:"YOU WOULD HAVE LOVED IT HERE",
                         file:"audio/youwouldhavelovedithere.m4a", duration:200.06 },
+
+  argyreianervosa:    { title:"ARGYREIA NERVOSA",
+                        file:"audio/argyreianervosa.m4a",         duration:102.10 },
+  breakfast:          { title:"BREAKFAST IN THE MORNING",
+                        file:"audio/breakfastinthemorning.m4a",   duration:65.43  },
+  jamwithjacques:     { title:"JAM WITH JACQUES, PT 2",
+                        file:"audio/jamwithjacques2.m4a",         duration:117.08 },
+  evidently:          { title:"EVIDENTLY BY UNDERSTANDING",
+                        file:"audio/evidentlybyunderstanding.m4a",duration:110.11 },
+  futuresequoia:      { title:"FUTURE SEQUOIA",
+                        file:"audio/futuresequoia.m4a",           duration:112.11 },
+  inacontinuation:    { title:"IN A CONTINUATION",
+                        file:"audio/inacontinuation.m4a",         duration:122.11 },
+  prairie:            { title:"WALKING THROUGH A PRAIRIE IN AN ENDING THUNDERSTORM",
+                        file:"audio/walkingthroughaprairie.m4a",  duration:264.06 },
 };
 
 
@@ -131,8 +146,10 @@ const SCHEDULE = [
     visual:"spectrum",
     video: mix('cyberia','pirate'),
     // deep, mysterious — the tracks that read as "late and alone"
-    items: [LIBRARY.metaphysics, LIBRARY.wavorian, LIBRARY.forgottenentity,
-            LIBRARY.artificialinterlude, LIBRARY.byansel, LIBRARY.introwaveorian],
+    items: [LIBRARY.metaphysics, LIBRARY.argyreianervosa, LIBRARY.wavorian,
+            LIBRARY.inacontinuation, LIBRARY.forgottenentity,
+            LIBRARY.artificialinterlude, LIBRARY.jamwithjacques,
+            LIBRARY.byansel, LIBRARY.introwaveorian],
   },
   {
     // 07:00–11:00 UTC is the one window that's genuinely nighttime in
@@ -167,8 +184,9 @@ const SCHEDULE = [
     visual:"drift",
     video: mix('sound','highway'),
     // calm, open, unhurried — the daytime tracks
-    items: [LIBRARY.ethereal, LIBRARY.noforest, LIBRARY.beautifulview,
-            LIBRARY.hypotheticalpoint, LIBRARY.electronicmontage,
+    items: [LIBRARY.ethereal, LIBRARY.noforest, LIBRARY.breakfast,
+            LIBRARY.beautifulview, LIBRARY.hypotheticalpoint,
+            LIBRARY.futuresequoia, LIBRARY.electronicmontage,
             LIBRARY.relevance, LIBRARY.todayisnotless],
   },
   {
@@ -180,7 +198,7 @@ const SCHEDULE = [
     video: mix('pirate','manormouse'),
     // reflective, warm, a little wistful — the tracks that read as dusk
     items: [LIBRARY.theevening, LIBRARY.leavingearth, LIBRARY.lovedithere,
-            LIBRARY.parallelearthcycle, LIBRARY.memorable,
+            LIBRARY.prairie, LIBRARY.parallelearthcycle, LIBRARY.memorable,
             LIBRARY.foundupintheair, LIBRARY.lyricalhappiness],
   },
   {
@@ -192,7 +210,7 @@ const SCHEDULE = [
     video: mix('cyberia','manormouse'),
     // dramatic, propulsive — builds toward the night
     items: [LIBRARY.avillainnarrative, LIBRARY.avillainconclusion,
-            LIBRARY.usandvoyager, LIBRARY.interstellar,
+            LIBRARY.usandvoyager, LIBRARY.evidently, LIBRARY.interstellar,
             LIBRARY.howcanthey, LIBRARY.somethingspecial],
   },
 ];
