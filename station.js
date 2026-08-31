@@ -196,21 +196,3 @@ const SCHEDULE = [
             LIBRARY.howcanthey, LIBRARY.somethingspecial],
   },
 ];
-
-
-/* ---------- idents -------------------------------------------------
-   Shown briefly between items. Chosen by the clock, so everyone sees
-   the same one at the same moment.
-   ------------------------------------------------------------------ */
-const IDENTS = [
-  "you are listening to a station that does not know you are there",
-  "this has been playing for some time",
-  "no announcer will be joining us",
-  "the transmitter is in a room with the door closed",
-  "recorded somewhere, played back here",
-  "if you can hear this, the signal reached further than intended",
-  "there is no schedule beyond the one already running",
-  "we will not be taking requests",
-  "the next item follows without pause",
-  "nothing here is live except the clock",
-];

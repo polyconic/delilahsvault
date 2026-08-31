@@ -13,7 +13,6 @@
 
   let ac, mix, master, analyser, mediaSrc;
   let curBlock = -1, curItem = -1, curVideo = -1;
-  let identUntil = 0;
   let started = false;
 
   /* ---------- station clock -------------------------------------- */
@@ -165,7 +164,6 @@
         $('#blockName').textContent = s.block.name;
         $('#counter').style.display = '';
       }
-      showIdent(s);
     }
 
     setVideo(s.block, s.elapsed);
@@ -175,12 +173,10 @@
       const p = playlistPos(s.block, s.elapsed, s.day);
 
       if(p.i !== curItem){
-        const first = curItem === -1;
         curItem = p.i;
         const item = s.block.items[p.i];
 
         $('#title').textContent = item.title;
-        // CC BY-NC-SA requires the credit to actually be visible
         $('#by').textContent    = item.by ? item.by + ' ·' : '';
         $('#trkNo').textContent = p.i + 1;
         $('#trkTot').textContent = s.block.items.length;
@@ -190,7 +186,6 @@
         au.addEventListener('loadedmetadata', seekAndPlay, {once:true});
         au.src = item.file;
         au.load();
-        if(!first) showIdent(s);
         return;
       }
 
@@ -202,15 +197,6 @@
   function nextBlock(){
     const s = onAir();
     return SCHEDULE[(s.idx+1) % SCHEDULE.length];
-  }
-
-  /* ---------- idents --------------------------------------------- */
-
-  function showIdent(s){
-    const n = Math.floor(s.s / 37);       // same line for everyone
-    $('#identLine').textContent = IDENTS[n % IDENTS.length];
-    $('#ident').classList.add('on');
-    identUntil = performance.now() + 5200;
   }
 
   /* ---------- the HUD -------------------------------------------- */
@@ -260,11 +246,6 @@
     if(s.idx !== curBlock) tuneTo();
 
     Visuals.draw(s.block.visual, s.s);
-
-    if(identUntil && performance.now() > identUntil){
-      $('#ident').classList.remove('on');
-      identUntil = 0;
-    }
   }
 
   /* ---------- schedule panel ------------------------------------- */
