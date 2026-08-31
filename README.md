@@ -36,7 +36,7 @@ like the real site.
 
 ## Deploying
 
-It's entirely static — no build step, no backend, no environment variables.
+It's static so no build step, no backend, and no environment variables.
 Point any static host at the repo and it works. Currently deployed on
 GitHub Pages.
 
