@@ -574,6 +574,11 @@
   $('#schedToggle').addEventListener('click',    ()=>toggleSchedule(false));
   $('#tracklistToggle').addEventListener('click',()=>toggleSchedule(true));
 
+  $('#schedBack').addEventListener('click', e=>{
+    e.stopPropagation();
+    document.body.classList.remove('sched-open');
+  });
+
   // clicking the scrim closes it; clicking anything inside the panel
   // (a row, a track, a link) must not
   document.querySelector('.schedwrap').addEventListener('click', e=>{

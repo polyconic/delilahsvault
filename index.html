@@ -222,6 +222,24 @@
   body.sched-open .schedwrap{opacity:1; visibility:visible;}
 
   .schedinner{width:min(680px,88vw); margin:auto; padding:6vh 0;}
+
+  /* On a phone the panel fills the screen, so there's no scrim left to
+     tap and no Escape key — without this there is no way back out.
+     Fixed, so it stays put while the track list scrolls. */
+  .schedback{
+    position:fixed; z-index:11;
+    top:clamp(12px,2.5vw,26px); left:clamp(12px,2.5vw,26px);
+    display:flex; align-items:center; gap:9px;
+    /* padding gives a 44px-plus touch target without changing how it looks */
+    padding:15px 16px; margin:-15px -16px;
+    background:none; border:0; cursor:pointer;
+    font-family:var(--font); font-weight:700;
+    font-size:clamp(11px,1.15vw,13px);
+    letter-spacing:.2em; text-transform:uppercase; color:var(--ink);
+    transition:opacity .3s;
+  }
+  .schedback:hover{opacity:.6;}
+  .schedback .barrow{font-size:1.5em; line-height:.9; font-weight:400;}
   .schedhead{
     display:flex; justify-content:space-between;
     font-size:clamp(9px,1vw,11px); letter-spacing:.28em;
@@ -496,6 +514,9 @@
 </div>
 
 <div class="schedwrap">
+  <button class="schedback" id="schedBack" aria-label="close">
+    <span class="barrow">&#8592;</span><span>back</span>
+  </button>
   <div class="schedinner">
     <div class="schedhead"><span>The day</span><span>time</span></div>
     <div id="sched"></div>
