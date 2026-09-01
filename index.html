@@ -223,13 +223,15 @@
 
   .schedinner{width:min(680px,88vw); margin:auto; padding:6vh 0;}
 
-  /* On a phone the panel fills the screen, so there's no scrim left to
-     tap and no Escape key — without this there is no way back out.
-     Fixed, so it stays put while the track list scrolls. */
+  /* Touch only. On desktop there's a visible scrim to click and an
+     Escape key, so this is just clutter — but on a phone or tablet the
+     panel fills the screen and neither of those exists, leaving no way
+     back out. Fixed, so it stays put while the track list scrolls. */
   .schedback{
+    display:none;                /* turned on only by the query below */
     position:fixed; z-index:11;
     top:clamp(12px,2.5vw,26px); left:clamp(12px,2.5vw,26px);
-    display:flex; align-items:center; gap:9px;
+    align-items:center; gap:9px;
     /* padding gives a 44px-plus touch target without changing how it looks */
     padding:15px 16px; margin:-15px -16px;
     background:none; border:0; cursor:pointer;
@@ -238,6 +240,9 @@
     line-height:1;
     letter-spacing:.2em; text-transform:uppercase; color:var(--ink);
     transition:opacity .3s;
+  }
+  @media (max-width:600px), (hover:none){
+    .schedback{display:flex;}
   }
   .schedback:hover{opacity:.6;}
   /* the arrow glyph sits lower in its em box than cap-height text, so
