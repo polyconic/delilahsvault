@@ -266,9 +266,14 @@
   let measureCtx = null;
 
   function fitTitle(){
+    // Measure BEFORE resetting. The old order cleared the fitted size and
+    // then bailed out if the width wasn't measurable yet, which left the
+    // title at full size with no re-fit until something else nudged it —
+    // that's how long titles ended up running off the screen.
+    const avail = titleEl.clientWidth || (titleEl.parentElement||{}).clientWidth || 0;
+    if(!avail){ requestAnimationFrame(fitTitle); return; }
+
     titleEl.style.fontSize = '';               // back to the CSS size
-    const avail = titleEl.clientWidth;
-    if(!avail) return;
 
     const cs   = getComputedStyle(titleEl);
     const base = parseFloat(cs.fontSize);
@@ -279,8 +284,11 @@
     for(const w of titleEl.textContent.trim().split(/\s+/)){
       widest = Math.max(widest, measureCtx.measureText(w).width);
     }
-    if(widest > avail){
-      titleEl.style.fontSize = Math.floor(base * (avail / widest)) + 'px';
+    // 0.97 leaves a hair of margin — canvas measureText and the real
+    // layout don't agree to the pixel, and exact-fit looked clipped
+    const room = avail * 0.97;
+    if(widest > room){
+      titleEl.style.fontSize = Math.floor(base * (room / widest)) + 'px';
     }
 
     // a very long title can still stack up too many lines
@@ -293,6 +301,20 @@
   }
 
   addEventListener('resize', fitTitle);
+
+  /* A resize event isn't enough on its own — the available width also
+     changes on orientation flips and when the layout settles after load.
+     Watch the container instead. Guarded on width so the height change
+     that fitting itself causes can't loop back round. */
+  if(window.ResizeObserver && titleEl.parentElement){
+    let lastW = -1;
+    new ResizeObserver(entries=>{
+      const w = entries[0].contentRect.width;
+      if(Math.abs(w - lastW) < 1) return;
+      lastW = w;
+      fitTitle();
+    }).observe(titleEl.parentElement);
+  }
 
   /* ---------- the HUD -------------------------------------------- */
 

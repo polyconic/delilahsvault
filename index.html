@@ -41,6 +41,11 @@
   }
 
   *{box-sizing:border-box;margin:0;padding:0;}
+  /* In-app browsers (Instagram, Facebook) auto-inflate text, which
+     renders it larger than the CSS asked for — the JS title fit then
+     measures one size and the browser draws another, and long words
+     spill off the edge. Pin it to exactly what's specified. */
+  html{-webkit-text-size-adjust:100%; text-size-adjust:100%;}
   html,body{height:100%;}
 
   body{
@@ -107,8 +112,13 @@
   .stage{
     position:fixed; inset:0; z-index:3;
     display:grid; grid-template-rows:auto 1fr auto;
+    /* safe-area on all four sides — in landscape a notch eats into the
+       left or right edge, which is where the clock and day counter sit */
     padding:clamp(20px,3.6vw,46px);
+    padding-top:calc(clamp(20px,3.6vw,46px) + env(safe-area-inset-top));
     padding-bottom:calc(clamp(20px,3.6vw,46px) + env(safe-area-inset-bottom));
+    padding-left:calc(clamp(20px,3.6vw,46px) + env(safe-area-inset-left));
+    padding-right:calc(clamp(20px,3.6vw,46px) + env(safe-area-inset-right));
     transition:opacity .5s, filter .5s;
   }
   body.sched-open .stage{opacity:0; pointer-events:none;}
@@ -155,6 +165,11 @@
     font-weight:300; line-height:.9; letter-spacing:-.025em;
     text-wrap:balance;
     text-shadow:0 0 70px rgba(240,240,240,.14);
+    /* last-resort net: if the JS fit is ever wrong — a substituted font,
+       an in-app browser rendering at a size we didn't measure — break the
+       word instead of letting it run off the screen. Should not normally
+       trigger, since the fit shrinks the type first. */
+    overflow-wrap:anywhere;
   }
 
   .meta{
