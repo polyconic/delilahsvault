@@ -105,19 +105,57 @@
   let bgFront = 0;
   const deadClips = new Set();   // clips that 404'd or wouldn't decode
 
-  function setVideo(block, elapsed){
-    const all = block.video || [];
-    const clips = all.filter(c => !deadClips.has(c));
+  /* The picture is its own rotation, independent of the schedule. It
+     runs continuously across block boundaries and reshuffles every time
+     it has been through all the clips, so the order is never the same
+     twice — but the shuffle is seeded from the cycle number, so it is
+     still identical for every listener at any given moment. */
 
-    if(!clips.length){
+  const CLIP_SECONDS = 180;          // how long one clip holds the screen
+  let clipCycle = -1, clipOrder = null;
+
+  function seededOrder(n, seed){
+    const a = [...Array(n).keys()];
+    let s = seed;
+    const rnd = () => {
+      s |= 0; s = s + 0x6D2B79F5 | 0;
+      let t = Math.imul(s ^ s >>> 15, 1 | s);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+    for(let i = n - 1; i > 0; i--){
+      const j = Math.floor(rnd() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function setVideo(now){
+    const n = ALL_FOOTAGE.length;
+    if(!n || deadClips.size >= n){
       bg.forEach(v=>v.classList.remove('on'));
       curVideo = -1;
       return;
     }
 
-    // a clip holds the screen for three minutes, then the next
-    const i = Math.floor(elapsed/180) % clips.length;
-    const src = clips[i];
+    const slot  = Math.floor(now / CLIP_SECONDS);
+    const cycle = Math.floor(slot / n);
+    const pos   = ((slot % n) + n) % n;
+
+    // a fresh order each time the whole set has played through
+    if(cycle !== clipCycle){
+      clipCycle = cycle;
+      clipOrder = seededOrder(n, cycle);
+    }
+
+    // skip anything that failed to load, keeping the rotation intact
+    let src = null;
+    for(let i = 0; i < n; i++){
+      const cand = ALL_FOOTAGE[clipOrder[(pos + i) % n]];
+      if(!deadClips.has(cand)){ src = cand; break; }
+    }
+    if(!src) return;
+
     if(src === curVideo) return;
     curVideo = src;
 
@@ -149,7 +187,8 @@
     if(s.idx !== curBlock){
       curBlock = s.idx;
       curItem  = -1;
-      curVideo = -1;
+      // curVideo is deliberately NOT reset here — the picture runs as one
+      // continuous rotation and must carry on across a block change
 
       $('#blockNote').textContent = s.block.note || '';
       document.body.dataset.visual = s.block.visual;
@@ -173,7 +212,7 @@
       }
     }
 
-    setVideo(s.block, s.elapsed);
+    setVideo(s.s);
 
     /* --- playlist blocks: keep the right item playing ------------ */
     if(s.block.mode === 'playlist'){

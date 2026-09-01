@@ -126,7 +126,11 @@ const FOOTAGE = {
   cyberia:    ["video/cyberia1.mp4", "video/cyberia2.mp4", "video/cyberia3.mp4"],
 };
 
-const mix = (...keys) => keys.flatMap(k => FOOTAGE[k] || []);
+/* Every clip, as one pool. The picture is deliberately NOT tied to the
+   schedule — it runs as a single continuous rotation that carries on
+   across block boundaries, reshuffled each time it has been through the
+   whole set, so the order is never the same twice. */
+const ALL_FOOTAGE = Object.values(FOOTAGE).flat();
 
 
 /* ---------- the day -----------------------------------------------
@@ -144,7 +148,6 @@ const SCHEDULE = [
     note:  "uninterrupted, for those still awake",
     mode:  "playlist",
     visual:"spectrum",
-    video: mix('cyberia','pirate'),
     // deep, mysterious — the tracks that read as "late and alone"
     items: [LIBRARY.metaphysics, LIBRARY.argyreianervosa, LIBRARY.wavorian,
             LIBRARY.inacontinuation, LIBRARY.forgottenentity,
@@ -162,7 +165,6 @@ const SCHEDULE = [
     mode:  "generative",
     preset:"carrier",
     visual:"testcard",
-    video: mix('cro','torus'),
   },
   {
     start: 9,
@@ -171,7 +173,6 @@ const SCHEDULE = [
     mode:  "generative",
     preset:"firstlight",
     visual:"horizon",
-    video: mix('highway','sound'),
   },
   {
     // absorbs what used to be the INTERVAL slot (15:00–17:00) — that sat
@@ -182,7 +183,6 @@ const SCHEDULE = [
     note:  "",
     mode:  "playlist",
     visual:"drift",
-    video: mix('sound','highway'),
     // calm, open, unhurried — the daytime tracks
     items: [LIBRARY.ethereal, LIBRARY.noforest, LIBRARY.breakfast,
             LIBRARY.beautifulview, LIBRARY.hypotheticalpoint,
@@ -195,7 +195,6 @@ const SCHEDULE = [
     note:  "",
     mode:  "playlist",
     visual:"horizon",
-    video: mix('pirate','manormouse'),
     // reflective, warm, a little wistful — the tracks that read as dusk
     items: [LIBRARY.theevening, LIBRARY.leavingearth, LIBRARY.lovedithere,
             LIBRARY.prairie, LIBRARY.parallelearthcycle, LIBRARY.memorable,
@@ -207,7 +206,6 @@ const SCHEDULE = [
     note:  "louder as it gets later",
     mode:  "playlist",
     visual:"spectrum",
-    video: mix('cyberia','manormouse'),
     // dramatic, propulsive — builds toward the night
     items: [LIBRARY.avillainnarrative, LIBRARY.avillainconclusion,
             LIBRARY.usandvoyager, LIBRARY.evidently, LIBRARY.interstellar,
