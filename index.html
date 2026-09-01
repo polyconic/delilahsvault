@@ -234,12 +234,18 @@
     padding:15px 16px; margin:-15px -16px;
     background:none; border:0; cursor:pointer;
     font-family:var(--font); font-weight:700;
-    font-size:clamp(11px,1.15vw,13px);
+    font-size:clamp(9.5px,1vw,11px);
+    line-height:1;
     letter-spacing:.2em; text-transform:uppercase; color:var(--ink);
     transition:opacity .3s;
   }
   .schedback:hover{opacity:.6;}
-  .schedback .barrow{font-size:1.5em; line-height:.9; font-weight:400;}
+  /* the arrow glyph sits lower in its em box than cap-height text, so
+     matching line-heights isn't enough — nudge it to optically centre */
+  .schedback .barrow{
+    font-size:1.7em; line-height:1; font-weight:400;
+    position:relative; top:-0.04em;
+  }
   .schedhead{
     display:flex; justify-content:space-between;
     font-size:clamp(9px,1vw,11px); letter-spacing:.28em;
