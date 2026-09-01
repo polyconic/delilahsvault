@@ -349,16 +349,48 @@
     const wrap = $('#sched');
     wrap.innerHTML = '';
     SCHEDULE.forEach((b,i)=>{
-      const end = (i+1<SCHEDULE.length ? SCHEDULE[i+1].start : 24);
+      const end  = (i+1<SCHEDULE.length ? SCHEDULE[i+1].start : 24);
+      const list = b.items || [];
+
+      const group = document.createElement('div');
+      group.className = 'sgroup';
+      group.dataset.i = i;
+
+      // a block's own name says nothing about how much is behind it —
+      // show the count so the schedule doesn't read as six items total
+      const kind = b.mode === 'generative'
+                 ? 'generated'
+                 : `${list.length} tracks`;
+
       const row = document.createElement('div');
-      row.className = 'srow';
+      row.className = 'srow' + (list.length ? ' expandable' : '');
       row.dataset.i = i;
       row.innerHTML =
         `<span class="shour">${pad(b.start)}:00</span>` +
         `<span class="sname">${b.name}</span>` +
-        `<span class="skind">${b.mode==='generative'?'generated':'recorded'}</span>` +
+        `<span class="skind">${kind}</span>` +
         `<span class="sto">${pad(end%24)}:00</span>`;
-      wrap.appendChild(row);
+      group.appendChild(row);
+
+      if(list.length){
+        const tracks = document.createElement('div');
+        tracks.className = 'stracks';
+        tracks.innerHTML = list.map((t,n)=>
+          `<div class="strack" data-file="${t.file}">` +
+            `<span class="snum">${pad(n+1)}</span>` +
+            `<span class="stitle">${t.title}</span>` +
+            `<span class="slen">${mmss(t.duration)}</span>` +
+          `</div>`
+        ).join('');
+        group.appendChild(tracks);
+
+        row.addEventListener('click', e=>{
+          e.stopPropagation();          // don't let the scrim close the panel
+          group.classList.toggle('open');
+        });
+      }
+
+      wrap.appendChild(group);
     });
   }
 
@@ -367,11 +399,29 @@
     document.querySelectorAll('.srow').forEach(r=>{
       r.classList.toggle('now', +r.dataset.i === s.idx);
     });
+
+    // mark the track actually on air, scoped to the live block so an
+    // identical file listed elsewhere can't light up too
+    document.querySelectorAll('.strack.playing')
+            .forEach(t=>t.classList.remove('playing'));
+    if(s.block.mode !== 'playlist' || !s.block.items) return;
+    const live = s.block.items[playlistPos(s.block, s.elapsed, s.day).i];
+    const group = document.querySelector(`.sgroup[data-i="${s.idx}"]`);
+    if(!group || !live) return;
+    const el = [...group.querySelectorAll('.strack')]
+               .find(t => t.dataset.file === live.file);
+    if(el) el.classList.add('playing');
   }
 
-  function toggleSchedule(){
+  const setAllGroups = open => document.querySelectorAll('.sgroup').forEach(g=>{
+    if(g.querySelector('.stracks')) g.classList.toggle('open', open);
+  });
+
+  // `schedule` is the overview — blocks collapsed. `tracklist` is the
+  // same panel with everything already open. Two doors, one room.
+  function toggleSchedule(expanded){
     const open = document.body.classList.toggle('sched-open');
-    if(open) markSchedule();
+    if(open){ setAllGroups(!!expanded); markSchedule(); }
   }
 
   /* ---------- start ---------------------------------------------- */
@@ -521,15 +571,18 @@
 
   setInterval(paintSound, 2000);
 
-  $('#schedToggle').addEventListener('click', toggleSchedule);
-  // clicking anywhere on the scrim closes it again — except on a link,
-  // which would otherwise shut the panel out from under the click
+  $('#schedToggle').addEventListener('click',    ()=>toggleSchedule(false));
+  $('#tracklistToggle').addEventListener('click',()=>toggleSchedule(true));
+
+  // clicking the scrim closes it; clicking anything inside the panel
+  // (a row, a track, a link) must not
   document.querySelector('.schedwrap').addEventListener('click', e=>{
-    if(e.target.closest('a')) return;
+    if(e.target.closest('.schedinner')) return;
     document.body.classList.remove('sched-open');
   });
   addEventListener('keydown', e=>{
-    if(e.key === 's' || e.key === 'S') toggleSchedule();
+    if(e.key === 's' || e.key === 'S') toggleSchedule(false);
+    if(e.key === 't' || e.key === 'T') toggleSchedule(true);
     if(e.key === 'Escape') document.body.classList.remove('sched-open');
   });
 

@@ -200,24 +200,28 @@
     font-size:clamp(9px,1vw,11px);
     letter-spacing:.2em; text-transform:uppercase; color:var(--dim);
   }
-  #schedToggle{
+  #schedToggle, #tracklistToggle{
     color:var(--quiet); cursor:pointer; letter-spacing:.2em;
     border-bottom:1px solid transparent; padding-bottom:2px;
     transition:color .4s, border-color .4s;
   }
-  #schedToggle:hover{color:var(--ink); border-color:var(--dimmer);}
+  #schedToggle:hover, #tracklistToggle:hover{
+    color:var(--ink); border-color:var(--dimmer);
+  }
 
   /* ---------- schedule ---------- */
   .schedwrap{
     position:fixed; inset:0; z-index:9;
-    display:flex; align-items:center; justify-content:center;
+    /* scrolls once the track lists are expanded — margin:auto on the
+       inner keeps it centred when short without clipping when tall */
+    display:flex; overflow-y:auto; overscroll-behavior:contain;
     background:rgba(15,15,15,.93);
     opacity:0; visibility:hidden; transition:opacity .5s, visibility .5s;
     cursor:pointer;
   }
   body.sched-open .schedwrap{opacity:1; visibility:visible;}
 
-  .schedinner{width:min(680px,88vw);}
+  .schedinner{width:min(680px,88vw); margin:auto; padding:6vh 0;}
   .schedhead{
     display:flex; justify-content:space-between;
     font-size:clamp(9px,1vw,11px); letter-spacing:.28em;
@@ -243,6 +247,32 @@
     content:'on air'; margin-left:14px; font-size:.78em;
     letter-spacing:.2em; color:var(--quiet);
   }
+
+  /* ---------- expandable track lists ---------- */
+  .srow.expandable{cursor:pointer;}
+  .srow.expandable .skind::after{
+    content:' +'; font-style:normal; color:var(--quiet);
+  }
+  .sgroup.open .srow.expandable .skind::after{content:' –';}
+
+  .stracks{
+    display:none;
+    padding:4px 0 14px;
+    border-bottom:1px solid rgba(43,43,43,.6);
+  }
+  .sgroup.open .stracks{display:block;}
+
+  .strack{
+    display:grid; grid-template-columns:2.2em 1fr auto;
+    gap:clamp(8px,2vw,20px); align-items:baseline;
+    padding:5px 0; font-size:clamp(9px,.98vw,11px);
+    letter-spacing:.1em; color:var(--dim);
+    line-height:1.5;
+  }
+  .strack .snum{font-variant-numeric:tabular-nums; color:var(--quiet);}
+  .strack .slen{font-variant-numeric:tabular-nums; color:var(--quiet);}
+  .strack.playing{color:var(--ink);}
+  .strack.playing .snum, .strack.playing .slen{color:var(--ink);}
   .schedfoot{
     margin-top:18px; font-size:clamp(9px,1vw,11px);
     font-style:italic; letter-spacing:.04em; color:var(--dimmer);
@@ -394,8 +424,12 @@
     header .right{white-space:nowrap; line-height:1.9;}
     .meta{gap:11px; letter-spacing:.15em;}
     .block{gap:8px;}
+    /* keep the track count visible on a phone — it's the thing that tells
+       you the block holds more than the block name suggests. Drop the end
+       time instead, which is implied by the next row's start. */
     .srow{grid-template-columns:auto 1fr auto; font-size:10px;}
-    .srow .skind{display:none;}
+    .srow .sto{display:none;}
+    .strack{grid-template-columns:2em 1fr auto; letter-spacing:.06em;}
   }
   @media (prefers-reduced-motion:reduce){ .grain,.ember{animation:none;} }
 </style>
@@ -442,6 +476,8 @@
       <span id="upnext">up next — —</span>
       <span class="controls">
         <span id="soundToggle">sound</span>
+        <span class="sep">·</span>
+        <span id="tracklistToggle">tracklist</span>
         <span class="sep">·</span>
         <span id="schedToggle">schedule</span>
       </span>
