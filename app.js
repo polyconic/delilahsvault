@@ -111,7 +111,9 @@
      twice — but the shuffle is seeded from the cycle number, so it is
      still identical for every listener at any given moment. */
 
-  const CLIP_SECONDS = 180;          // how long one clip holds the screen
+  // The clips are 34s each, so a 180s hold meant watching the same short
+  // loop go round five times. 68s lets it play through cleanly twice.
+  const CLIP_SECONDS = 68;           // how long one clip holds the screen
   let clipCycle = -1, clipOrder = null;
 
   function seededOrder(n, seed){
@@ -547,6 +549,16 @@
   setInterval(()=>{
     if(!started) return;
     const s = onAir();
+
+    /* The picture keeps its own time, so it has to be advanced here
+       rather than only inside tuneTo(). tuneTo() runs on track and block
+       changes, which meant that during a five-minute song the clip was
+       never re-evaluated and simply looped for the whole track. This
+       must also sit above the early returns below so the picture keeps
+       moving during the generative blocks, which have no track changes
+       at all. setVideo() no-ops when the clip hasn't changed. */
+    setVideo(s.s);
+
     if(s.idx !== curBlock){ tuneTo(); return; }
     if(s.block.mode !== 'playlist' || au.paused) return;
     const p = playlistPos(s.block, s.elapsed, s.day);
