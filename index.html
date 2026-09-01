@@ -215,14 +215,17 @@
     font-size:clamp(9px,1vw,11px);
     letter-spacing:.2em; text-transform:uppercase; color:var(--dim);
   }
-  #schedToggle, #tracklistToggle{
+  #schedToggle, #tracklistToggle, #fullToggle{
     color:var(--quiet); cursor:pointer; letter-spacing:.2em;
     border-bottom:1px solid transparent; padding-bottom:2px;
     transition:color .4s, border-color .4s;
   }
-  #schedToggle:hover, #tracklistToggle:hover{
+  #schedToggle:hover, #tracklistToggle:hover, #fullToggle:hover{
     color:var(--ink); border-color:var(--dimmer);
   }
+  /* hidden until JS confirms the browser actually supports it — iOS
+     Safari has no Fullscreen API for non-video elements */
+  #fullToggle, #fullSep{display:none;}
 
   /* ---------- schedule ---------- */
   .schedwrap{
@@ -410,7 +413,9 @@
   @keyframes gatepulse{0%,100%{opacity:1}50%{opacity:.35}}
 
   /* persistent control, so sound is never a one-time decision */
-  .controls{display:flex; align-items:center; gap:12px;}
+  /* wraps rather than overflows — four controls is a long row on a phone */
+  .controls{display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+            justify-content:flex-end;}
 
   /* ---------- volume slider ---------- */
   .volwrap{
@@ -524,6 +529,8 @@
         <span id="tracklistToggle">tracklist</span>
         <span class="sep">·</span>
         <span id="schedToggle">schedule</span>
+        <span class="sep" id="fullSep">·</span>
+        <span id="fullToggle">fullscreen</span>
       </span>
     </div>
   </footer>

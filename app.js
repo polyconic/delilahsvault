@@ -593,6 +593,43 @@
 
   setInterval(paintSound, 2000);
 
+  /* ---------- fullscreen ------------------------------------------
+     Only offered where it actually works. iOS Safari has no Fullscreen
+     API for ordinary elements — only video — so on an iPhone the button
+     stays hidden rather than sitting there doing nothing. */
+
+  const fsRoot   = document.documentElement;
+  const fsEnter  = fsRoot.requestFullscreen || fsRoot.webkitRequestFullscreen;
+  const fsLeave  = document.exitFullscreen  || document.webkitExitFullscreen;
+  const fsActive = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+  function paintFull(){
+    $('#fullToggle').textContent = fsActive() ? 'exit fullscreen' : 'fullscreen';
+  }
+
+  function toggleFull(){
+    if(!fsEnter) return;
+    // the promise rejects if the gesture wasn't trusted; nothing to do
+    if(fsActive()) { try{ fsLeave.call(document); }catch(e){} }
+    else           { try{ Promise.resolve(fsEnter.call(fsRoot)).catch(()=>{}); }catch(e){} }
+  }
+
+  // fullscreenEnabled also covers being embedded in an iframe that wasn't
+  // granted fullscreen — the method exists there but always rejects
+  const fsAllowed = document.fullscreenEnabled ?? document.webkitFullscreenEnabled ?? true;
+
+  if(fsEnter && fsLeave && fsAllowed){
+    // must be an explicit value — clearing the inline style would just
+    // fall back to the display:none in the stylesheet
+    $('#fullToggle').style.display = 'inline';
+    $('#fullSep').style.display    = 'inline';
+    $('#fullToggle').addEventListener('click', e=>{ e.stopPropagation(); toggleFull(); });
+    // also fires when the user leaves with Esc, so the label stays honest
+    ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>
+      document.addEventListener(ev, paintFull));
+    paintFull();
+  }
+
   $('#schedToggle').addEventListener('click',    ()=>toggleSchedule(false));
   $('#tracklistToggle').addEventListener('click',()=>toggleSchedule(true));
 
@@ -610,6 +647,7 @@
   addEventListener('keydown', e=>{
     if(e.key === 's' || e.key === 'S') toggleSchedule(false);
     if(e.key === 't' || e.key === 'T') toggleSchedule(true);
+    if(e.key === 'f' || e.key === 'F') toggleFull();
     if(e.key === 'Escape') document.body.classList.remove('sched-open');
   });
 
