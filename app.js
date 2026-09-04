@@ -45,19 +45,28 @@
     };
   }
 
-  // Where a block's playlist is, given how long the block has been
-  // running. The day number shifts the running order, so the same
-  // hour doesn't play the same thing every day.
-  function playlistPos(block, elapsed, day){
-    const items = block.items;
-    const total = items.reduce((a,t)=>a+t.duration,0);
-    const shift = (day*7919) % total;
-    let off = ((elapsed + shift) % total + total) % total;
-    for(let i=0;i<items.length;i++){
-      if(off < items[i].duration) return {i, off, total};
-      off -= items[i].duration;
+  // Where the rotation is, straight off the clock. Every cycle holds
+  // all of ROTATION exactly once, and the cycle number seeds the order
+  // — so the set repeats but the sequence never does.
+  const ROT_TOTAL = ROTATION.reduce((a,t)=>a+t.duration,0);
+
+  function rotationPos(s){
+    const elapsed = s - STATION.epoch;
+    const cycle   = Math.floor(elapsed / ROT_TOTAL);
+    const order   = seededOrder(ROTATION.length, cycle);
+    let off = ((elapsed % ROT_TOTAL) + ROT_TOTAL) % ROT_TOTAL;
+    for(let n=0;n<order.length;n++){
+      const track = ROTATION[order[n]];
+      if(off < track.duration) return {track, n, off, cycle, order};
+      off -= track.duration;
     }
-    return {i:0, off:0, total};
+    return {track:ROTATION[order[0]], n:0, off:0, cycle, order};
+  }
+
+  // at the end of a cycle the next track comes from the next shuffle
+  function nextInRotation(p){
+    if(p.n + 1 < p.order.length) return ROTATION[p.order[p.n+1]];
+    return ROTATION[seededOrder(ROTATION.length, p.cycle+1)[0]];
   }
 
   /* ---------- audio ---------------------------------------------- */
@@ -91,10 +100,8 @@
 
   function seekAndPlay(){
     transitioning = false;
-    const s = onAir();
-    if(s.idx !== curBlock || s.block.mode !== 'playlist') return;
-    const p = playlistPos(s.block, s.elapsed, s.day);
-    if(p.i === curItem){ try{ au.currentTime = p.off; }catch(e){} }
+    const p = rotationPos(stationSeconds());
+    if(p.n === curItem){ try{ au.currentTime = p.off; }catch(e){} }
     // seek it into position but stay silent until the gate is opened
     if(tunedIn) au.play().catch(()=>{});
   }
@@ -185,75 +192,48 @@
   function tuneTo(){
     const s = onAir();
 
-    /* --- block changed: swap the whole programme ---------------- */
+    /* --- block changed: it only sets the mood now ---------------- */
     if(s.idx !== curBlock){
       curBlock = s.idx;
-      curItem  = -1;
-      // curVideo is deliberately NOT reset here — the picture runs as one
-      // continuous rotation and must carry on across a block change
-
+      // curItem is deliberately NOT reset here — the music runs as one
+      // continuous rotation and carries on straight across a block change,
+      // exactly as the picture does
+      $('#blockName').textContent = s.block.name;
       $('#blockNote').textContent = s.block.note || '';
       document.body.dataset.visual = s.block.visual;
-
-      if(s.block.mode === 'generative'){
-        au.pause();
-        au.removeAttribute('src');
-        Synth.start(ac, mix, s.block.preset);
-        // the block name IS the title here, so leave the label empty and
-        // let the italic note carry the line on its own
-        $('#blockName').textContent = '';
-        $('#title').textContent     = s.block.name;
-        fitTitle();
-        $('#by').textContent        = '';
-        $('#counter').style.display = 'none';
-        $('#upnext').textContent = 'up next — ' + nextBlock().name;
-      }else{
-        Synth.stop();
-        $('#blockName').textContent = s.block.name;
-        $('#counter').style.display = '';
-      }
     }
 
     setVideo(s.s);
 
-    /* --- playlist blocks: keep the right item playing ------------ */
-    if(s.block.mode === 'playlist'){
-      const p = playlistPos(s.block, s.elapsed, s.day);
+    /* --- the rotation, which owes nothing to the schedule -------- */
+    const p = rotationPos(s.s);
 
-      if(p.i !== curItem){
-        curItem = p.i;
-        const item = s.block.items[p.i];
+    if(p.n !== curItem){
+      curItem = p.n;
 
-        $('#title').textContent = item.title;
-        fitTitle();
-        $('#by').textContent    = item.by ? item.by + ' ·' : '';
-        $('#trkNo').textContent = p.i + 1;
-        $('#trkTot').textContent = s.block.items.length;
-        $('#upnext').textContent =
-          'up next — ' + s.block.items[(p.i+1) % s.block.items.length].title;
+      $('#title').textContent  = p.track.title;
+      fitTitle();
+      $('#by').textContent     = p.track.by ? p.track.by + ' ·' : '';
+      $('#trkNo').textContent  = p.n + 1;
+      $('#trkTot').textContent = ROTATION.length;
+      $('#upnext').textContent = 'up next — ' + nextInRotation(p).title;
 
-        // au.load() briefly makes au.paused true while the new file's
-        // metadata loads — a normal gap, not a browser autoplay block.
-        // Suppress the "click for sound" check until playback resumes,
-        // with a timeout so a genuine stall still gets caught.
-        transitioning = true;
-        clearTimeout(transitionTimer);
-        transitionTimer = setTimeout(()=>{ transitioning = false; }, 4000);
+      // au.load() briefly makes au.paused true while the new file's
+      // metadata loads — a normal gap, not a browser autoplay block.
+      // Suppress the "click for sound" check until playback resumes,
+      // with a timeout so a genuine stall still gets caught.
+      transitioning = true;
+      clearTimeout(transitionTimer);
+      transitionTimer = setTimeout(()=>{ transitioning = false; }, 4000);
 
-        au.addEventListener('loadedmetadata', seekAndPlay, {once:true});
-        au.src = item.file;
-        au.load();
-        return;
-      }
-
-      try{ au.currentTime = p.off; }catch(e){}
-      if(tunedIn) au.play().catch(()=>{});
+      au.addEventListener('loadedmetadata', seekAndPlay, {once:true});
+      au.src = p.track.file;
+      au.load();
+      return;
     }
-  }
 
-  function nextBlock(){
-    const s = onAir();
-    return SCHEDULE[(s.idx+1) % SCHEDULE.length];
+    try{ au.currentTime = p.off; }catch(e){}
+    if(tunedIn) au.play().catch(()=>{});
   }
 
   /* ---------- fitting the title ----------------------------------
@@ -344,21 +324,13 @@
     $('#blockBar').style.width = ((s.elapsed/s.length)*100).toFixed(2)+'%';
     $('#blockLeft').textContent = 'block ends in ' + longDur(s.remain);
 
-    if(s.block.mode === 'playlist' && s.block.items){
-      const p = playlistPos(s.block, s.elapsed, s.day);
-      const dur = s.block.items[p.i].duration;
-      $('#fill').style.width  = (p.off/dur*100).toFixed(3)+'%';
-      $('#elapsed').textContent = mmss(p.off);
-      $('#remain').textContent  = '−'+mmss(dur-p.off);
-      $('#trkNo').textContent   = p.i+1;
-      if(p.i !== curItem) tuneTo();
-    }else{
-      const g = Synth.progress(s.s);
-      $('#fill').style.width = (g*100).toFixed(2)+'%';
-      const l = Synth.label(s.s);
-      $('#elapsed').textContent = 'seq ' + l.seq;
-      $('#remain').textContent  = '';
-    }
+    const p   = rotationPos(s.s);
+    const dur = p.track.duration;
+    $('#fill').style.width    = (p.off/dur*100).toFixed(3)+'%';
+    $('#elapsed').textContent = mmss(p.off);
+    $('#remain').textContent  = '−'+mmss(dur-p.off);
+    $('#trkNo').textContent   = p.n+1;
+    if(p.n !== curItem) tuneTo();
 
     if(s.idx !== curBlock) tuneTo();
 
@@ -370,68 +342,71 @@
   function buildSchedule(){
     const wrap = $('#sched');
     wrap.innerHTML = '';
+
     SCHEDULE.forEach((b,i)=>{
-      const end  = (i+1<SCHEDULE.length ? SCHEDULE[i+1].start : 24);
-      const list = b.items || [];
-
-      const group = document.createElement('div');
-      group.className = 'sgroup';
-      group.dataset.i = i;
-
-      // a block's own name says nothing about how much is behind it —
-      // show the count so the schedule doesn't read as six items total
-      const kind = b.mode === 'generative'
-                 ? 'generated'
-                 : `${list.length} tracks`;
-
+      const end = (i+1<SCHEDULE.length ? SCHEDULE[i+1].start : 24);
       const row = document.createElement('div');
-      row.className = 'srow' + (list.length ? ' expandable' : '');
+      row.className = 'srow';
       row.dataset.i = i;
       row.innerHTML =
         `<span class="shour">${pad(b.start)}:00</span>` +
         `<span class="sname">${b.name}</span>` +
-        `<span class="skind">${kind}</span>` +
+        `<span class="skind">${end-b.start}h</span>` +
         `<span class="sto">${pad(end%24)}:00</span>`;
-      group.appendChild(row);
-
-      if(list.length){
-        const tracks = document.createElement('div');
-        tracks.className = 'stracks';
-        tracks.innerHTML = list.map((t,n)=>
-          `<div class="strack" data-file="${t.file}">` +
-            `<span class="snum">${pad(n+1)}</span>` +
-            `<span class="stitle">${t.title}</span>` +
-            `<span class="slen">${mmss(t.duration)}</span>` +
-          `</div>`
-        ).join('');
-        group.appendChild(tracks);
-
-        row.addEventListener('click', e=>{
-          e.stopPropagation();          // don't let the scrim close the panel
-          group.classList.toggle('open');
-        });
-      }
-
-      wrap.appendChild(group);
+      wrap.appendChild(row);
     });
+
+    // the rotation belongs to no block, so it gets its own row at the
+    // foot of the day — collapsed under `schedule`, open under `tracklist`
+    const group = document.createElement('div');
+    group.className = 'sgroup rot';
+    group.innerHTML =
+      `<div class="srow expandable">` +
+        `<span class="shour"></span>` +
+        `<span class="sname">THE ROTATION</span>` +
+        `<span class="skind">${ROTATION.length} tracks</span>` +
+        `<span class="sto">${longDur(ROT_TOTAL)}</span>` +
+      `</div>` +
+      `<div class="stracks"></div>`;
+    group.querySelector('.srow').addEventListener('click', e=>{
+      e.stopPropagation();              // don't let the scrim close the panel
+      group.classList.toggle('open');
+    });
+    wrap.appendChild(group);
+    fillRotation(rotationPos(stationSeconds()).cycle);
+  }
+
+  // The list is this cycle's running order, not the library's — so its
+  // numbers are the same ones the counter shows, and what's below the
+  // playing track is genuinely what's coming. Rebuilt when the cycle turns.
+  let rotCycle = -1;
+
+  function fillRotation(cycle){
+    const box = document.querySelector('.sgroup.rot .stracks');
+    if(!box) return;
+    rotCycle = cycle;
+    box.innerHTML = seededOrder(ROTATION.length, cycle).map((idx,n)=>{
+      const t = ROTATION[idx];
+      return `<div class="strack" data-file="${t.file}">` +
+               `<span class="snum">${pad(n+1)}</span>` +
+               `<span class="stitle">${t.title}</span>` +
+               `<span class="slen">${mmss(t.duration)}</span>` +
+             `</div>`;
+    }).join('');
   }
 
   function markSchedule(){
     const s = onAir();
-    document.querySelectorAll('.srow').forEach(r=>{
+    document.querySelectorAll('.srow[data-i]').forEach(r=>{
       r.classList.toggle('now', +r.dataset.i === s.idx);
     });
 
-    // mark the track actually on air, scoped to the live block so an
-    // identical file listed elsewhere can't light up too
+    const p = rotationPos(s.s);
+    if(p.cycle !== rotCycle) fillRotation(p.cycle);
+
     document.querySelectorAll('.strack.playing')
             .forEach(t=>t.classList.remove('playing'));
-    if(s.block.mode !== 'playlist' || !s.block.items) return;
-    const live = s.block.items[playlistPos(s.block, s.elapsed, s.day).i];
-    const group = document.querySelector(`.sgroup[data-i="${s.idx}"]`);
-    if(!group || !live) return;
-    const el = [...group.querySelectorAll('.strack')]
-               .find(t => t.dataset.file === live.file);
+    const el = document.querySelectorAll('.strack')[p.n];
     if(el) el.classList.add('playing');
   }
 
@@ -465,7 +440,7 @@
 
   function audible(){
     return tunedIn && ac && ac.state === 'running' &&
-           (onAir().block.mode !== 'playlist' || !au.paused || transitioning);
+           (!au.paused || transitioning);
   }
 
   function paintSound(){
@@ -478,7 +453,7 @@
   function nudge(){
     if(!ac || !tunedIn) return;
     if(ac.state === 'suspended') ac.resume().catch(()=>{});
-    if(onAir().block.mode === 'playlist') au.play().catch(()=>{});
+    au.play().catch(()=>{});
     setTimeout(paintSound, 350);
   }
 
@@ -491,12 +466,9 @@
 
     // jump to wherever the station actually is right now, not to
     // wherever the element happened to be left while gated
-    const s = onAir();
-    if(s.block.mode === 'playlist'){
-      const p = playlistPos(s.block, s.elapsed, s.day);
-      if(p.i === curItem){ try{ au.currentTime = p.off; }catch(e){} }
-      au.play().catch(()=>{});
-    }
+    const p = rotationPos(stationSeconds());
+    if(p.n === curItem){ try{ au.currentTime = p.off; }catch(e){} }
+    au.play().catch(()=>{});
     setTimeout(paintSound, 350);
   }
 
@@ -655,13 +627,10 @@
 
   /* Everything the SOUND depends on runs on timers, not on
      requestAnimationFrame. Browsers pause rAF in a background tab, and
-     this is a station people leave running in one — on rAF alone the
-     generative blocks would freeze mid-drone and block changes would
-     be missed until the tab was looked at again. Timers are throttled
-     in the background but they do keep firing. */
-
-  // keep the synth evolving and firing its scheduled events
-  setInterval(()=>{ if(started) Synth.tick(stationSeconds()); }, 250);
+     this is a station people leave running in one — on rAF alone track
+     and block changes would be missed until the tab was looked at
+     again. Timers are throttled in the background but they do keep
+     firing. */
 
   // stay on the right block / right item, however long we've been hidden
   setInterval(()=>{
@@ -673,14 +642,13 @@
        changes, which meant that during a five-minute song the clip was
        never re-evaluated and simply looped for the whole track. This
        must also sit above the early returns below so the picture keeps
-       moving during the generative blocks, which have no track changes
-       at all. setVideo() no-ops when the clip hasn't changed. */
+       moving regardless. setVideo() no-ops when the clip hasn't changed. */
     setVideo(s.s);
 
     if(s.idx !== curBlock){ tuneTo(); return; }
-    if(s.block.mode !== 'playlist' || au.paused) return;
-    const p = playlistPos(s.block, s.elapsed, s.day);
-    if(p.i !== curItem || Math.abs(au.currentTime - p.off) > 1.5) tuneTo();
+    if(au.paused) return;
+    const p = rotationPos(s.s);
+    if(p.n !== curItem || Math.abs(au.currentTime - p.off) > 1.5) tuneTo();
   }, 5000);
 
   // coming back to the tab: re-sync immediately rather than waiting

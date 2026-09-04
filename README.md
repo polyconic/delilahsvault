@@ -6,20 +6,25 @@ Just static files, but it behaves like a real 24-hour station. There's no play b
 list to browse. You just arrive, and whatever's on is already in progress,
 the same for every listener at that moment. 
 
-The station keeps its own clock, based in Iceland, and the day
-is split into blocks that each sound and look different:
+The station keeps its own clock, based in Iceland. Music runs as a single
+continuous rotation through the whole catalogue — every track once per
+cycle, reshuffled each time it has been all the way round, so the set
+repeats but the running order never does. A cycle is about 79 minutes.
 
-| from  | block             | what plays          |
-|-------|-------------------|----------------------|
-| 00:00 | NIGHT SHIFT       | music                |
-| 07:00 | CARRIER           | generated live       |
-| 09:00 | FIRST LIGHT       | generated live       |
-| 11:00 | DAY SERVICE       | music                |
-| 17:00 | THE LONG EVENING  | music                |
-| 21:00 | LATE TRANSMISSION | music                |
+Over the top of that, the day is split into blocks:
 
-The **generated live** blocks are not audio files at all. They're built in
-the browser out of oscillators and noise.
+| from  | block             |
+|-------|-------------------|
+| 00:00 | NIGHT SHIFT       |
+| 07:00 | CARRIER           |
+| 09:00 | FIRST LIGHT       |
+| 11:00 | DAY SERVICE       |
+| 17:00 | THE LONG EVENING  |
+| 21:00 | LATE TRANSMISSION |
+
+Blocks set the name on screen, the note under it, and which background
+visual is painted. They don't decide what plays — the rotation carries
+straight on across them.
 
 ## Running it locally
 
@@ -44,12 +49,16 @@ GitHub Pages.
 Everything you'd normally touch lives in one file: [`station.js`](station.js).
 
 - `LIBRARY` — one entry per track (title, audio file, exact length in seconds)
-- `SCHEDULE` — the day's blocks and what each one plays
+- `ROTATION` — every track in `LIBRARY`, as one pool
+- `SCHEDULE` — the day's blocks (name, note, visual)
 - `FOOTAGE` — the background video clips
-- `IDENTS` — the little lines that flash between tracks
 
-To add a track: drop the audio file in `audio/`, add one line to `LIBRARY`,
-then list it in a block's `items` in `SCHEDULE`.
+To add a track: drop the audio file in `audio/` and add one line to
+`LIBRARY`. It joins the rotation on its own — there's nothing to schedule.
+
+The `duration` must be accurate to a fraction of a second. The whole
+broadcast clock is built on those numbers, so a wrong one puts every
+listener out of step with the audio.
 
 `tools/fetch_footage.py` is a helper for pulling new video clips from
 archive.org without downloading the full source file.
@@ -61,7 +70,6 @@ archive.org without downloading the full source file.
 | `index.html` | the page — layout and all styling |
 | `station.js` | the file you actually edit |
 | `app.js` | the clock logic, audio, and on-screen display |
-| `synth.js` | the generated-live blocks |
 | `visuals.js` | the background visual effects |
 | `serve.py` | local preview server only — not used in production |
 

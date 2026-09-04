@@ -309,6 +309,9 @@
   }
   .sgroup.open .stracks{display:block;}
 
+  /* the rotation isn't one of the day's blocks — set it apart */
+  .sgroup.rot{margin-top:22px;}
+
   .strack{
     display:grid; grid-template-columns:2.2em 1fr auto;
     gap:clamp(8px,2vw,20px); align-items:baseline;
@@ -554,10 +557,10 @@
     <div class="schedhead"><span>The day</span><span>time</span></div>
     <div id="sched"></div>
     <div class="schedfoot">
-      The same programme runs every day, in the station's own time zone.
-      What plays inside each block shifts from one day to the next.
-      Blocks marked <em>generated</em> are synthesized as you listen and
-      have never played before.
+      The same blocks run every day, in the station's own time zone —
+      they set the mood of the hour, not the music. The rotation
+      underneath runs straight through everything without regard for
+      them, reshuffled each time it has been all the way round.
     </div>
 
     <div class="credits">
@@ -616,7 +619,6 @@
 <audio id="au" crossorigin="anonymous"></audio>
 
 <script src="station.js"></script>
-<script src="synth.js"></script>
 <script src="visuals.js"></script>
 <script src="app.js"></script>
 </body>

@@ -133,82 +133,58 @@ const FOOTAGE = {
 const ALL_FOOTAGE = Object.values(FOOTAGE).flat();
 
 
+/* ---------- the rotation ------------------------------------------
+   Every track, as one pool. The music is deliberately NOT tied to the
+   schedule — it runs as a single continuous rotation that carries on
+   across block boundaries, reshuffled each time it has been through
+   the whole set, so the running order is never the same twice.
+   ------------------------------------------------------------------ */
+const ROTATION = Object.values(LIBRARY);
+
+
 /* ---------- the day -----------------------------------------------
    Blocks run from their `start` hour until the next block begins.
    Must be sorted, and the first must start at 0.
 
-   mode: "playlist"    — plays files from `items`
-         "generative"  — synthesized live in the browser, never repeats
-   visual: which canvas mode paints behind it
+   Blocks no longer decide what plays — the rotation does that. What a
+   block sets is the character of the hour: its name, its note, and
+   which canvas mode paints behind it.
    ------------------------------------------------------------------ */
 const SCHEDULE = [
   {
     start: 0,
     name:  "NIGHT SHIFT",
     note:  "uninterrupted, for those still awake",
-    mode:  "playlist",
     visual:"spectrum",
-    // deep, mysterious — the tracks that read as "late and alone"
-    items: [LIBRARY.metaphysics, LIBRARY.argyreianervosa, LIBRARY.wavorian,
-            LIBRARY.inacontinuation, LIBRARY.forgottenentity,
-            LIBRARY.artificialinterlude, LIBRARY.jamwithjacques,
-            LIBRARY.byansel, LIBRARY.introwaveorian],
   },
   {
-    // 07:00–11:00 UTC is the one window that's genuinely nighttime in
-    // every continental US timezone at once (11pm–6am local, worked out
-    // across all four zones) — that's who's actually listening, so the
-    // generative hours live here rather than on Iceland's own clock.
     start: 7,
     name:  "CARRIER",
     note:  "the signal, unattended",
-    mode:  "generative",
-    preset:"carrier",
     visual:"testcard",
   },
   {
     start: 9,
     name:  "FIRST LIGHT",
     note:  "slow music for an empty hour",
-    mode:  "generative",
-    preset:"firstlight",
     visual:"horizon",
   },
   {
-    // absorbs what used to be the INTERVAL slot (15:00–17:00) — that sat
-    // at 10am–noon Eastern / 7–9am Pacific, i.e. the middle of the US
-    // workday, which is the worst possible time to have nothing playing.
     start: 11,
     name:  "DAY SERVICE",
     note:  "",
-    mode:  "playlist",
     visual:"drift",
-    // calm, open, unhurried — the daytime tracks
-    items: [LIBRARY.ethereal, LIBRARY.noforest, LIBRARY.breakfast,
-            LIBRARY.beautifulview, LIBRARY.hypotheticalpoint,
-            LIBRARY.futuresequoia, LIBRARY.electronicmontage,
-            LIBRARY.relevance, LIBRARY.todayisnotless],
   },
   {
     start: 17,
     name:  "THE LONG EVENING",
     note:  "",
-    mode:  "playlist",
     visual:"horizon",
-    // reflective, warm, a little wistful — the tracks that read as dusk
-    items: [LIBRARY.theevening, LIBRARY.leavingearth, LIBRARY.lovedithere,
-            LIBRARY.prairie, LIBRARY.parallelearthcycle, LIBRARY.memorable,
-            LIBRARY.foundupintheair, LIBRARY.lyricalhappiness],
   },
   {
     start: 21,
     name:  "LATE TRANSMISSION",
     note:  "louder as it gets later",
-    mode:  "playlist",
     visual:"spectrum",
-    // dramatic, propulsive — builds toward the night
-    items: [LIBRARY.avillainnarrative, LIBRARY.avillainconclusion,
-            LIBRARY.usandvoyager, LIBRARY.evidently, LIBRARY.interstellar,
-            LIBRARY.howcanthey, LIBRARY.somethingspecial],
   },
 ];
