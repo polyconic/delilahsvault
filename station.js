@@ -12,11 +12,11 @@ const STATION = {
   name:  "DELILAH'S VAULT",     // shown on the page
   title: "Delilah's Vault",     // browser tab
 
-  // The station broadcasts from Reykjavik, Iceland — which is UTC+0
-  // year-round (no DST observed), so this offset happens to be 0. If
-  // Iceland ever changes that, this is the only number to touch.
-  // Change it and the whole day's programming shifts with it.
-  tzOffset: 0,
+  // The station keeps Chicago's clock, daylight saving and all. This is
+  // an IANA zone name rather than a fixed offset on purpose: the browser
+  // already knows when the US changes its clocks, so there is nothing
+  // here to go stale twice a year.
+  tz: "America/Chicago",
 
   // Never change once live — the day counter is measured from here.
   // Set so today reads Day 2; it climbs by one every real day from now on.
@@ -35,7 +35,7 @@ const LIBRARY = {
   ethereal:           { title:"ETHEREAL",
                         file:"audio/ethereal.m4a",                duration:134.12 },
   noforest:           { title:"NO FOREST",
-                        file:"audio/noforest.m4a",                duration:314.05 },
+                        file:"audio/noforest.m4a",                duration:314.05, vibe:"morning" },
   beautifulview:      { title:"BEAUTIFUL VIEW",
                         file:"audio/beautifulview.m4a",           duration:194.05 },
   avillainnarrative:  { title:"A VILLAIN NARRATIVE",
@@ -43,7 +43,7 @@ const LIBRARY = {
   usandvoyager:       { title:"US & VOYAGER",
                         file:"audio/usandvoyager.m4a",            duration:140.06 },
   theevening:         { title:"THE EVENING",
-                        file:"audio/theevening.m4a",              duration:105.07 },
+                        file:"audio/theevening.m4a",              duration:105.07, vibe:"evening" },
   parallelearthcycle: { title:"PARALLEL EARTH CYCLE",
                         file:"audio/parallelearthcycle.m4a",      duration:116.05 },
   interstellar:       { title:"INTERSTELLAR!",
@@ -69,7 +69,7 @@ const LIBRARY = {
   foundupintheair:    { title:"IT IS FOUND UP IN THE AIR",
                         file:"audio/itisfoundupintheair.m4a",     duration:120.12 },
   lyricalhappiness:   { title:"LYRICAL HAPPINESS",
-                        file:"audio/lyricalhappiness.m4a",        duration:102.10 },
+                        file:"audio/lyricalhappiness.m4a",        duration:102.10, vibe:"morning" },
   memorable:          { title:"MEMORABLE",
                         file:"audio/memorable.m4a",               duration:264.06 },
   relevance:          { title:"RELEVANCE & RELATIVITY",
@@ -79,14 +79,14 @@ const LIBRARY = {
   todayisnotless:     { title:"TODAY IS NOT LESS TIME",
                         file:"audio/todayisnotlesstime.m4a",      duration:38.10  },
   wavorian:           { title:"WAVORIAN",
-                        file:"audio/wavorian.m4a",                duration:133.12 },
+                        file:"audio/wavorian.m4a",                duration:133.12, vibe:"morning" },
   lovedithere:        { title:"YOU WOULD HAVE LOVED IT HERE",
                         file:"audio/youwouldhavelovedithere.m4a", duration:200.06 },
 
   argyreianervosa:    { title:"ARGYREIA NERVOSA",
                         file:"audio/argyreianervosa.m4a",         duration:102.10 },
   breakfast:          { title:"BREAKFAST IN THE MORNING",
-                        file:"audio/breakfastinthemorning.m4a",   duration:65.43  },
+                        file:"audio/breakfastinthemorning.m4a",   duration:65.43, vibe:"morning" },
   jamwithjacques:     { title:"JAM WITH JACQUES, PT 2",
                         file:"audio/jamwithjacques2.m4a",         duration:117.08 },
   evidently:          { title:"EVIDENTLY BY UNDERSTANDING",
@@ -134,10 +134,13 @@ const ALL_FOOTAGE = Object.values(FOOTAGE).flat();
 
 
 /* ---------- the rotation ------------------------------------------
-   Every track, as one pool. The music is deliberately NOT tied to the
-   schedule — it runs as a single continuous rotation that carries on
-   across block boundaries, reshuffled each time it has been through
-   the whole set, so the running order is never the same twice.
+   Every track, as one pool, shuffled afresh each time it has been all
+   the way round — so the set repeats but the running order never does.
+
+   A track tagged with a `vibe` is the exception: it only joins the
+   rotation during the hours that carry the same tag below. THE EVENING
+   should not turn up at nine in the morning, and BREAKFAST IN THE
+   MORNING should not close the night.
    ------------------------------------------------------------------ */
 const ROTATION = Object.values(LIBRARY);
 
@@ -146,9 +149,12 @@ const ROTATION = Object.values(LIBRARY);
    Blocks run from their `start` hour until the next block begins.
    Must be sorted, and the first must start at 0.
 
-   Blocks no longer decide what plays — the rotation does that. What a
-   block sets is the character of the hour: its name, its note, and
-   which canvas mode paints behind it.
+   Blocks set the character of the hour: the name, the note, and which
+   canvas mode paints behind it. They don't choose tracks.
+
+   `vibes` is the one exception — it says which tagged tracks are awake
+   during those hours. Neighbouring blocks that list the same vibes share
+   one rotation and don't restart at the boundary between them.
    ------------------------------------------------------------------ */
 const SCHEDULE = [
   {
@@ -156,35 +162,41 @@ const SCHEDULE = [
     name:  "NIGHT SHIFT",
     note:  "uninterrupted, for those still awake",
     visual:"spectrum",
+    vibes: [],
   },
   {
     start: 7,
     name:  "CARRIER",
     note:  "the signal, unattended",
     visual:"testcard",
+    vibes: ["morning"],
   },
   {
     start: 9,
     name:  "FIRST LIGHT",
     note:  "slow music for an empty hour",
     visual:"horizon",
+    vibes: ["morning"],
   },
   {
     start: 11,
     name:  "DAY SERVICE",
     note:  "",
     visual:"drift",
+    vibes: [],
   },
   {
     start: 17,
     name:  "THE LONG EVENING",
     note:  "",
     visual:"horizon",
+    vibes: ["evening"],
   },
   {
     start: 21,
     name:  "LATE TRANSMISSION",
     note:  "louder as it gets later",
     visual:"spectrum",
+    vibes: [],
   },
 ];
