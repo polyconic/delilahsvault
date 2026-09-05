@@ -321,6 +321,10 @@
   body.tracklist .credits{display:none;}
   body.tracklist .sgroup.rot{margin-top:0;}
 
+  /* nothing to collapse into here — the list is the page */
+  body.tracklist .sgroup.rot .srow.expandable{cursor:default; pointer-events:none;}
+  body.tracklist .sgroup.rot .srow.expandable .skind::after{content:'';}
+
   .strack{
     display:grid; grid-template-columns:2.2em 1fr auto;
     gap:clamp(8px,2vw,20px); align-items:baseline;

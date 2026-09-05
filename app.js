@@ -386,6 +386,7 @@
       `<div class="stracks"></div>`;
     group.querySelector('.srow').addEventListener('click', e=>{
       e.stopPropagation();              // don't let the scrim close the panel
+      if(document.body.classList.contains('tracklist')) return;
       group.classList.toggle('open');
     });
     wrap.appendChild(group);
