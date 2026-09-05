@@ -161,7 +161,7 @@ const SCHEDULE = [
     start: 7,
     name:  "CARRIER",
     note:  "the signal, unattended",
-    visual:"testcard",
+    visual:"drift",
   },
   {
     start: 9,

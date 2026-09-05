@@ -116,54 +116,6 @@ const Visuals = (function(){
   // nothing behind it
   const spectrum = waveform;
 
-  // a test card, drifting. for the hours when nobody is meant to be
-  // watching.
-  function testcard(now, glow){
-    const {mid, room} = bounds();
-    const R = Math.min(room*0.92, W*0.26);
-    const cx = W*0.5, cy = mid;
-    const breathe = 1 + 0.03*Math.sin(now*0.11);
-
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(Math.sin(now*0.017)*0.045);
-
-    // concentric rings
-    ctx.lineWidth = 1;
-    for(let i=1;i<=6;i++){
-      const r = (R*breathe) * (i/6);
-      ctx.strokeStyle = `rgba(240,240,240,${(0.030 + (i===4?0.05:0) + glow*0.04).toFixed(3)})`;
-      ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.stroke();
-    }
-
-    // crosshair
-    ctx.strokeStyle = `rgba(240,240,240,${(0.05+glow*0.05).toFixed(3)})`;
-    ctx.beginPath();
-    ctx.moveTo(-R*1.25,0); ctx.lineTo(R*1.25,0);
-    ctx.moveTo(0,-R*1.25); ctx.lineTo(0,R*1.25);
-    ctx.stroke();
-
-    // greyscale step wedge under the rings
-    const steps = 9, bw = (R*1.5)/steps;
-    for(let i=0;i<steps;i++){
-      const v = i/(steps-1);
-      ctx.fillStyle = `rgba(240,240,240,${(0.018 + v*0.055).toFixed(3)})`;
-      ctx.fillRect(-R*0.75 + i*bw, R*0.62, bw-1, R*0.13);
-    }
-    ctx.restore();
-
-    // a slow sweep line, like something still scanning
-    const sy = mid - room + ((now*26) % (room*2));
-    const g = ctx.createLinearGradient(0, sy-40, 0, sy+40);
-    g.addColorStop(0,'rgba(240,240,240,0)');
-    g.addColorStop(.5,`rgba(240,240,240,${(0.030+glow*0.03).toFixed(3)})`);
-    g.addColorStop(1,'rgba(240,240,240,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, sy-40, W, 80);
-
-    waveform(now, glow);
-  }
-
   // a lit band on the horizon, breathing
   function horizon(now, glow){
     const {mid, room} = bounds();
@@ -199,7 +151,7 @@ const Visuals = (function(){
     waveform(now, glow);
   }
 
-  const MODES = {spectrum, testcard, horizon, drift};
+  const MODES = {spectrum, horizon, drift};
 
   /* ---------- frame ---------------------------------------------- */
 
