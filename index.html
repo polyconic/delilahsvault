@@ -312,6 +312,15 @@
   /* the rotation isn't one of the day's blocks — set it apart */
   .sgroup.rot{margin-top:22px;}
 
+  /* `tracklist` is the same panel holding only the rotation. The day,
+     the note under it and the credits all belong to `schedule`, and
+     printing them twice is just noise. */
+  body.tracklist .schedhead,
+  body.tracklist #sched > .srow,
+  body.tracklist .schedfoot,
+  body.tracklist .credits{display:none;}
+  body.tracklist .sgroup.rot{margin-top:0;}
+
   .strack{
     display:grid; grid-template-columns:2.2em 1fr auto;
     gap:clamp(8px,2vw,20px); align-items:baseline;

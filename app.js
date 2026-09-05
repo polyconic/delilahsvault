@@ -434,6 +434,7 @@
   // same panel with everything already open. Two doors, one room.
   function toggleSchedule(expanded){
     const open = document.body.classList.toggle('sched-open');
+    document.body.classList.toggle('tracklist', open && !!expanded);
     if(open){ setAllGroups(!!expanded); markSchedule(); }
   }
 
@@ -623,20 +624,20 @@
 
   $('#schedBack').addEventListener('click', e=>{
     e.stopPropagation();
-    document.body.classList.remove('sched-open');
+    document.body.classList.remove('sched-open','tracklist');
   });
 
   // clicking the scrim closes it; clicking anything inside the panel
   // (a row, a track, a link) must not
   document.querySelector('.schedwrap').addEventListener('click', e=>{
     if(e.target.closest('.schedinner')) return;
-    document.body.classList.remove('sched-open');
+    document.body.classList.remove('sched-open','tracklist');
   });
   addEventListener('keydown', e=>{
     if(e.key === 's' || e.key === 'S') toggleSchedule(false);
     if(e.key === 't' || e.key === 'T') toggleSchedule(true);
     if(e.key === 'f' || e.key === 'F') toggleFull();
-    if(e.key === 'Escape') document.body.classList.remove('sched-open');
+    if(e.key === 'Escape') document.body.classList.remove('sched-open','tracklist');
   });
 
   au.addEventListener('ended', tuneTo);
