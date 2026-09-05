@@ -7,39 +7,24 @@ list to browse. You just arrive, and whatever's on is already in progress,
 the same for every listener at that moment. 
 
 The station keeps Chicago's clock, daylight saving included. Music runs
-as a rotation through the catalogue, reshuffled every time it has been
-all the way round, so the set repeats but the running order never does.
+as a single continuous rotation through the whole catalogue — every track
+once per cycle, reshuffled each time it has been all the way round, so the
+set repeats but the running order never does. A cycle is about 79 minutes.
 
-The day is split into blocks:
+Over the top of that, the day is split into blocks:
 
-| from  | block             | vibe    |
-|-------|-------------------|---------|
-| 00:00 | NIGHT SHIFT       |         |
-| 07:00 | CARRIER           | morning |
-| 09:00 | FIRST LIGHT       | morning |
-| 11:00 | DAY SERVICE       |         |
-| 17:00 | THE LONG EVENING  | evening |
-| 21:00 | LATE TRANSMISSION |         |
+| from  | block             |
+|-------|-------------------|
+| 00:00 | NIGHT SHIFT       |
+| 07:00 | CARRIER           |
+| 09:00 | FIRST LIGHT       |
+| 11:00 | DAY SERVICE       |
+| 17:00 | THE LONG EVENING  |
+| 21:00 | LATE TRANSMISSION |
 
 Blocks set the name on screen, the note under it, and which background
-visual is painted. What they mostly don't do is choose tracks.
-
-The exception is **vibe**. A track tagged `morning` or `evening` in
-`LIBRARY` only joins the rotation during hours carrying the same tag, so
-THE EVENING can't turn up at nine in the morning and BREAKFAST IN THE
-MORNING can't close the night. Everything untagged plays at any hour.
-
-That means the pool isn't the same all day, so the rotation runs in
-stretches rather than one endless loop. Neighbouring blocks wanting the
-same tracks merge into one stretch — including across midnight, so LATE
-TRANSMISSION runs into NIGHT SHIFT without the music restarting:
-
-| stretch       | pool | length |
-|---------------|------|--------|
-| 07:00–11:00   | 32   | 77m    |
-| 11:00–17:00   | 28   | 67m    |
-| 17:00–21:00   | 29   | 69m    |
-| 21:00–07:00   | 28   | 67m    |
+visual is painted. They don't decide what plays — the rotation carries
+straight on across them.
 
 ## Running it locally
 
@@ -63,10 +48,9 @@ GitHub Pages.
 
 Everything you'd normally touch lives in one file: [`station.js`](station.js).
 
-- `LIBRARY` — one entry per track (title, audio file, exact length in
-  seconds, and optionally `vibe`)
+- `LIBRARY` — one entry per track (title, audio file, exact length in seconds)
 - `ROTATION` — every track in `LIBRARY`, as one pool
-- `SCHEDULE` — the day's blocks (name, note, visual, vibes)
+- `SCHEDULE` — the day's blocks (name, note, visual)
 - `FOOTAGE` — the background video clips
 
 To add a track: drop the audio file in `audio/` and add one line to

@@ -61,77 +61,28 @@
     };
   }
 
-  /* ---------- segments -------------------------------------------
-     A track tagged with a vibe is only awake during the hours that
-     claim that vibe, so the pool isn't the same all day and the
-     rotation has to be per-stretch rather than one loop over
-     everything. Neighbouring blocks that want the same tracks merge
-     into one stretch — including across midnight, so LATE TRANSMISSION
-     runs into NIGHT SHIFT without the music restarting between them,
-     and the rotation only breaks where the pool genuinely changes. */
-
-  const vibeKey = b => [...(b.vibes || [])].sort().join(',');
-
-  const SEGMENTS = (() => {
-    const segs = SCHEDULE.map((b,i) => ({
-      start: b.start*3600,
-      end:  (i+1 < SCHEDULE.length ? SCHEDULE[i+1].start : 24)*3600,
-      key:   vibeKey(b),
-      vibes: b.vibes || [],
-    }));
-    for(let i = segs.length-1; i > 0; i--){
-      if(segs[i].key === segs[i-1].key){
-        segs[i-1].end = segs[i].end;
-        segs.splice(i,1);
-      }
-    }
-    // the day is a loop, so a first and last that agree are really one
-    // stretch running through midnight
-    if(segs.length > 1 && segs[0].key === segs[segs.length-1].key){
-      segs[segs.length-1].end = segs[0].end + 86400;
-      segs.shift();
-    }
-    return segs.map((g,i) => {
-      const pool = ROTATION.filter(t => !t.vibe || g.vibes.includes(t.vibe));
-      return {...g, i, pool, total: pool.reduce((a,t)=>a+t.duration,0)};
-    });
-  })();
-
-  function segmentAt(sod){
-    for(const g of SEGMENTS){
-      if(sod >= g.start && sod < g.end) return {g, into: sod - g.start, dayShift:0};
-      // a stretch that runs past midnight also owns the small hours,
-      // and counts them as belonging to the day it started on
-      if(g.end > 86400 && sod < g.end - 86400)
-        return {g, into: sod + 86400 - g.start, dayShift:-1};
-    }
-    return {g: SEGMENTS[0], into: 0, dayShift:0};
-  }
-
-  // the day and the stretch both feed the seed, so the same hour doesn't
-  // deal the same hand tomorrow
-  const poolOrder = (g, day, cycle) =>
-    seededOrder(g.pool.length, day*997 + g.i*31 + cycle);
+  // Where the rotation is, straight off the clock. Every cycle holds
+  // all of ROTATION exactly once, and the cycle number seeds the order
+  // — so the set repeats but the sequence never does.
+  const ROT_TOTAL = ROTATION.reduce((a,t)=>a+t.duration,0);
 
   function rotationPos(){
-    const {day, sod} = clock();
-    const {g, into, dayShift} = segmentAt(sod);
-    const d     = day + dayShift;
-    const cycle = Math.floor(into / g.total);
-    const order = poolOrder(g, d, cycle);
-    let off = into - cycle*g.total;
+    const elapsed = stationSeconds() - STATION.epoch;
+    const cycle   = Math.floor(elapsed / ROT_TOTAL);
+    const order   = seededOrder(ROTATION.length, cycle);
+    let off = ((elapsed % ROT_TOTAL) + ROT_TOTAL) % ROT_TOTAL;
     for(let n=0;n<order.length;n++){
-      const track = g.pool[order[n]];
-      if(off < track.duration) return {track, n, off, g, d, cycle, order};
+      const track = ROTATION[order[n]];
+      if(off < track.duration) return {track, n, off, cycle, order};
       off -= track.duration;
     }
-    return {track:g.pool[order[0]], n:0, off:0, g, d, cycle, order};
+    return {track:ROTATION[order[0]], n:0, off:0, cycle, order};
   }
 
-  // at the end of a pass the next track comes from the next shuffle
+  // at the end of a cycle the next track comes from the next shuffle
   function nextInRotation(p){
-    if(p.n + 1 < p.order.length) return p.g.pool[p.order[p.n+1]];
-    return p.g.pool[poolOrder(p.g, p.d, p.cycle+1)[0]];
+    if(p.n + 1 < p.order.length) return ROTATION[p.order[p.n+1]];
+    return ROTATION[seededOrder(ROTATION.length, p.cycle+1)[0]];
   }
 
   /* ---------- audio ---------------------------------------------- */
@@ -280,7 +231,7 @@
       fitTitle();
       $('#by').textContent     = p.track.by ? p.track.by + ' ·' : '';
       $('#trkNo').textContent  = p.n + 1;
-      $('#trkTot').textContent = p.g.pool.length;
+      $('#trkTot').textContent = ROTATION.length;
       $('#upnext').textContent = 'up next — ' + nextInRotation(p).title;
 
       // au.load() briefly makes au.paused true while the new file's
@@ -416,8 +367,7 @@
       row.innerHTML =
         `<span class="shour">${pad(b.start)}:00</span>` +
         `<span class="sname">${b.name}</span>` +
-        `<span class="skind">${end-b.start}h${
-           (b.vibes||[]).length ? ' · '+b.vibes.join(' ') : ''}</span>` +
+        `<span class="skind">${end-b.start}h</span>` +
         `<span class="sto">${pad(end%24)}:00</span>`;
       wrap.appendChild(row);
     });
@@ -430,8 +380,8 @@
       `<div class="srow expandable">` +
         `<span class="shour"></span>` +
         `<span class="sname">THE ROTATION</span>` +
-        `<span class="skind"></span>` +
-        `<span class="sto"></span>` +
+        `<span class="skind">${ROTATION.length} tracks</span>` +
+        `<span class="sto">${longDur(ROT_TOTAL)}</span>` +
       `</div>` +
       `<div class="stracks"></div>`;
     group.querySelector('.srow').addEventListener('click', e=>{
@@ -442,25 +392,17 @@
     fillRotation(rotationPos());
   }
 
-  // The list is this pass's running order for the stretch that's on,
-  // not the library's — so its numbers are the ones the counter shows,
-  // and what sits below the playing track is genuinely what's coming.
-  let rotKey = '';
-
-  const passKey = p => p.g.i+':'+p.d+':'+p.cycle;
+  // The list is this cycle's running order, not the library's — so its
+  // numbers are the same ones the counter shows, and what's below the
+  // playing track is genuinely what's coming. Rebuilt when the cycle turns.
+  let rotCycle = -1;
 
   function fillRotation(p){
     const box = document.querySelector('.sgroup.rot .stracks');
     if(!box) return;
-    rotKey = passKey(p);
-
-    document.querySelector('.sgroup.rot .skind').textContent =
-      p.g.pool.length + ' tracks';
-    document.querySelector('.sgroup.rot .sto').textContent =
-      longDur(p.g.total);
-
+    rotCycle = p.cycle;
     box.innerHTML = p.order.map((idx,n)=>{
-      const t = p.g.pool[idx];
+      const t = ROTATION[idx];
       return `<div class="strack" data-file="${t.file}">` +
                `<span class="snum">${pad(n+1)}</span>` +
                `<span class="stitle">${t.title}</span>` +
@@ -476,7 +418,7 @@
     });
 
     const p = rotationPos();
-    if(passKey(p) !== rotKey) fillRotation(p);
+    if(p.cycle !== rotCycle) fillRotation(p);
 
     document.querySelectorAll('.strack.playing')
             .forEach(t=>t.classList.remove('playing'));

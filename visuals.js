@@ -82,8 +82,10 @@ const Visuals = (function(){
 
   /* ---------- modes ---------------------------------------------- */
 
-  // mirrored spectrum of thin lines
-  function spectrum(now, glow){
+  /* The waveform is the station's signature, so it has to read the same
+     in every block — only what sits behind it changes. Modes call this
+     last, over their own backdrop. */
+  function waveform(now, glow){
     readBands();
     const {mid, room} = bounds();
     const amp  = Math.min(H*0.30, 270, room/1.45);
@@ -110,6 +112,9 @@ const Visuals = (function(){
     ctx.strokeStyle = `rgba(240,240,240,${(0.05+glow*0.10).toFixed(3)})`;
     ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(W,mid); ctx.stroke();
   }
+
+  // nothing behind it
+  const spectrum = waveform;
 
   // a test card, drifting. for the hours when nobody is meant to be
   // watching.
@@ -155,14 +160,14 @@ const Visuals = (function(){
     g.addColorStop(1,'rgba(240,240,240,0)');
     ctx.fillStyle = g;
     ctx.fillRect(0, sy-40, W, 80);
+
+    waveform(now, glow);
   }
 
   // a lit band on the horizon, breathing
   function horizon(now, glow){
     const {mid, room} = bounds();
     const amp = Math.min(room*0.85, 210);
-
-    if(analyser) readBands();
 
     // luminous band
     const g = ctx.createLinearGradient(0, mid-amp, 0, mid+amp);
@@ -174,26 +179,12 @@ const Visuals = (function(){
     ctx.fillStyle = g;
     ctx.fillRect(0, mid-amp, W, amp*2);
 
-    // a slow curve riding it
-    ctx.strokeStyle = `rgba(240,240,240,${(0.10+glow*0.16).toFixed(3)})`;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for(let x=0;x<=W;x+=6){
-      const u = x/W;
-      const e = analyser ? shaped[Math.floor(u*(N-1))] : 0.3;
-      const y = mid
-              + Math.sin(u*5.2 + now*0.16)*amp*0.16
-              + Math.sin(u*2.1 - now*0.09)*amp*0.10
-              - e*amp*0.30;
-      x ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
-    }
-    ctx.stroke();
+    waveform(now, glow);
   }
 
   // wide slow bands, like a monitor slightly off-tune
   function drift(now, glow){
     const {mid, room} = bounds();
-    if(analyser) readBands();
 
     const bands = 7;
     for(let i=0;i<bands;i++){
@@ -205,24 +196,7 @@ const Visuals = (function(){
       ctx.fillRect(0, y, W, h);
     }
 
-    // faint vertical ticks that respond to the music
-    if(analyser){
-      const step = W/N;
-      for(let i=0;i<N;i+=2){
-        const v = shaped[i];
-        if(v < 0.08) continue;
-        const x = i*step + step/2;
-        const h = v*room*0.5;
-        ctx.strokeStyle = `rgba(240,240,240,${(0.03+v*0.14).toFixed(3)})`;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(x, mid-h*0.2); ctx.lineTo(x, mid+h);
-        ctx.stroke();
-      }
-    }
-
-    ctx.strokeStyle = `rgba(240,240,240,${(0.05+glow*0.06).toFixed(3)})`;
-    ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(W,mid); ctx.stroke();
+    waveform(now, glow);
   }
 
   const MODES = {spectrum, testcard, horizon, drift};
