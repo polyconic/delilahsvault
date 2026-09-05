@@ -11,7 +11,7 @@ as a single continuous rotation through the whole catalogue — every track
 once per cycle, reshuffled each time it has been all the way round, so the
 set repeats but the running order never does. A cycle is about 79 minutes.
 
-Over the top of that, the day is split into blocks:
+The day is split into blocks:
 
 | from  | block             |
 |-------|-------------------|
@@ -23,8 +23,7 @@ Over the top of that, the day is split into blocks:
 | 21:00 | LATE TRANSMISSION |
 
 Blocks set the name on screen, the note under it, and which background
-visual is painted. They don't decide what plays — the rotation carries
-straight on across them.
+visual is painted. Blocks do not set the music.
 
 ## Running it locally
 
