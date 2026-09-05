@@ -188,19 +188,39 @@
     const prev = bg[bgFront];
 
     next.onerror = () => {
+      next.onerror = null;
       // don't let one missing file blank the screen — drop it and move on
       deadClips.add(src);
       curVideo = -1;
     };
     next.oncanplay = () => {
+      next.oncanplay = null;          // also fires on later re-buffering
       next.play().catch(()=>{});
       next.classList.add('on');
       prev.classList.remove('on');
       bgFront ^= 1;
+
+      /* The outgoing clip was never stopped, so both elements decoded
+         for the whole broadcast with one of them fully transparent.
+         Phones won't give us two video decoders alongside the audio, and
+         the one they drop is the one on screen. Let it finish fading,
+         then stop it. */
+      setTimeout(()=>{ if(prev !== bg[bgFront]) prev.pause(); }, 2800);
     };
 
     next.src = src;
     next.load();
+  }
+
+  /* A background clip stops for all sorts of reasons we don't hear
+     about: coming back from another app, memory pressure, Low Power
+     Mode, another decoder winning. setVideo() can't notice, because it
+     returns early while the clip is unchanged — so a stopped clip used
+     to sit frozen on one frame for the rest of its 68 seconds. */
+  function keepPicturePlaying(){
+    const v = bg[bgFront];
+    if(!v.getAttribute('src') || !v.classList.contains('on')) return;
+    if(v.paused) v.play().catch(()=>{});
   }
 
   /* ---------- putting it on air ---------------------------------- */
@@ -662,6 +682,7 @@
        must also sit above the early returns below so the picture keeps
        moving regardless. setVideo() no-ops when the clip hasn't changed. */
     setVideo(s.s);
+    keepPicturePlaying();
 
     if(s.idx !== curBlock){ tuneTo(); return; }
     if(au.paused) return;
@@ -671,7 +692,7 @@
 
   // coming back to the tab: re-sync immediately rather than waiting
   document.addEventListener('visibilitychange', ()=>{
-    if(!document.hidden && started){ Visuals.fit(); tuneTo(); }
+    if(!document.hidden && started){ Visuals.fit(); tuneTo(); keepPicturePlaying(); }
   });
 
 })();
