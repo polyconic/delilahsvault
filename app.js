@@ -282,12 +282,15 @@
   let measureCtx = null;
 
   function fitTitle(){
-    // Measure BEFORE resetting. The old order cleared the fitted size and
-    // then bailed out if the width wasn't measurable yet, which left the
-    // title at full size with no re-fit until something else nudged it —
-    // that's how long titles ended up running off the screen.
-    const avail = titleEl.clientWidth || (titleEl.parentElement||{}).clientWidth || 0;
-    if(!avail){ requestAnimationFrame(fitTitle); return; }
+    /* The space to fit into is the CONTAINER's width, never the title's
+       own. .centre is a column flex with align-items:flex-start, so the
+       h1 is sized to its content — reading its width fed the already
+       fitted size back in as the room available and ratcheted the type
+       down a little more on every call. On a drag-resize, where this
+       runs continuously, that was the shrink-restore-shrink flicker. */
+    const box   = titleEl.parentElement;
+    const avail = (box && box.clientWidth) || 0;
+    if(!avail){ setTimeout(fitTitle, 50); return; }
 
     titleEl.style.fontSize = '';               // back to the CSS size
 
@@ -316,7 +319,24 @@
     }
   }
 
-  addEventListener('resize', fitTitle);
+  /* Every trigger goes through here, deferred a task so it reads settled
+     layout and so a drag's flood of events collapses into one fit.
+
+     A timer rather than requestAnimationFrame: this is a station people
+     leave running in a background tab, and a hidden tab runs no frames
+     at all — an rAF here simply never fires, which would leave the title
+     at whatever size it held when the tab was last looked at. Timers are
+     throttled in the background but they do keep firing, the same reason
+     the audio runs on them. A hidden tab also delivers no ResizeObserver
+     callbacks, so the fit is repeated on the way back as well. */
+  let fitQueued = null;
+
+  function queueFit(){
+    if(fitQueued) return;
+    fitQueued = setTimeout(()=>{ fitQueued = null; fitTitle(); }, 0);
+  }
+
+  addEventListener('resize', queueFit);
 
   /* A resize event isn't enough on its own — the available width also
      changes on orientation flips and when the layout settles after load.
@@ -328,7 +348,7 @@
       const w = entries[0].contentRect.width;
       if(Math.abs(w - lastW) < 1) return;
       lastW = w;
-      fitTitle();
+      queueFit();
     }).observe(titleEl.parentElement);
   }
 
@@ -692,7 +712,9 @@
 
   // coming back to the tab: re-sync immediately rather than waiting
   document.addEventListener('visibilitychange', ()=>{
-    if(!document.hidden && started){ Visuals.fit(); tuneTo(); keepPicturePlaying(); }
+    if(!document.hidden && started){
+      Visuals.fit(); tuneTo(); keepPicturePlaying(); queueFit();
+    }
   });
 
 })();
