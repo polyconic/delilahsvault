@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Delilah's Vault</title>
 <link rel="icon" href="favicon.png">
+<link rel="canonical" href="https://delilahsvault.com/">
 <meta name="description" content="A stream in perpetuity. Always live, always already in progress.">
 
 <!-- Link previews. og:image must be an absolute URL — every platform
@@ -41,6 +42,8 @@
   }
 
   *{box-sizing:border-box;margin:0;padding:0;}
+  /* readable by search engines, screen readers and AI tools; the page is almost all video and a canvas */
+  .about{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
   /* In-app browsers (Instagram, Facebook) auto-inflate text, which
      renders it larger than the CSS asked for — the JS title fit then
      measures one size and the browser draws another, and long words
@@ -508,6 +511,8 @@
 <canvas id="viz"></canvas>
 <div class="vignette"></div>
 <div class="grain"></div>
+
+<p class="about">Delilah’s Vault is a 24-hour internet radio station that never stops. Its music plays in one continuous rotation over short clips from the Internet Archive. There is no play button: open it and whatever is on is already in progress, the same for every listener.</p>
 
 <div class="stage">
   <header>
