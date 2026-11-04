@@ -1,15 +1,3 @@
-/* ==================================================================
-   VISUALS
-
-   One canvas, several modes. Which one is painting is decided by the
-   schedule, so the picture changes through the day along with the
-   sound.
-
-   Nothing here draws the music. Every mode is a soft field of light
-   painted from gradients, so none of them has a hard edge. All one
-   near-neutral white — this sits behind type and must not compete.
-   ================================================================== */
-
 const Visuals = (function(){
 
   let cvs, ctx, analyser, freq;
@@ -34,8 +22,6 @@ const Visuals = (function(){
     freq = new Uint8Array(a.frequencyBinCount);
   }
 
-  /* ---------- listening ---------------------------------------- */
-
   function listen(){
     if(!analyser) return {low:0, high:0};
     analyser.getByteFrequencyData(freq);
@@ -47,8 +33,6 @@ const Visuals = (function(){
     return {low: low/(24*255), high: high/((b-a)*255)};
   }
 
-  // the vertical extent the visuals are allowed to occupy, measured
-  // from the real layout so nothing ever grows into the type
   function bounds(){
     const meta = document.querySelector('.meta');
     const foot = document.querySelector('footer');
@@ -69,14 +53,11 @@ const Visuals = (function(){
     g.addColorStop(.72, `rgba(${rgb},${a3(alpha*0.13)})`);
     g.addColorStop(1,   `rgba(${rgb},0)`);
     ctx.fillStyle = g;
-    // only the square the gradient reaches, not the whole canvas
+
     const x0 = Math.max(0, x-r), y0 = Math.max(0, y-r);
     ctx.fillRect(x0, y0, Math.min(W, x+r)-x0, Math.min(H, y+r)-y0);
   }
 
-  /* ---------- modes ----------------------------------------------- */
-
-  // low in the frame, rising on the bass over a slow breath of its own
   function ember(now, glow, air){
     const {mid, room} = bounds();
     const breath = 0.5 + 0.5*Math.sin(now*0.085);
@@ -91,7 +72,6 @@ const Visuals = (function(){
           LIGHT, 0.013 + air*0.045);
   }
 
-  // a lit band on the horizon, breathing
   function horizon(now, glow, air){
     const {mid, room} = bounds();
     const breath = 0.5 + 0.5*Math.sin(now*0.062);
@@ -113,7 +93,6 @@ const Visuals = (function(){
           LIGHT, 0.012 + air*0.042);
   }
 
-  // wide slow bands, each fading out at both its own edges
   function drift(now, glow, air){
     const {mid, room} = bounds();
     const span  = room*2;
@@ -137,8 +116,6 @@ const Visuals = (function(){
   }
 
   const MODES = {ember, horizon, drift};
-
-  /* ---------- frame ---------------------------------------------- */
 
   let glow = 0, air = 0;
 
