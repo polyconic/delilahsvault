@@ -106,12 +106,10 @@ for non-video elements.
 warm turned the whole thing yellow; the softness comes from the gradients and the
 grain, not from a tint.
 
-## Picture licences
+## Picture
 
-Clips are from archive.org and the licences differ. CC and public domain are safe to
-broadcast; Cathode Ray Oscilloscope and Welcome To Cyberia are **unstated** and were
-only ever checked as safe locally. This now points at a real domain — worth
-revisiting. Credits are listed in the schedule panel and the README.
+Clips are from archive.org, listed with their licences in the schedule panel and the
+README.
 
 ## SEO
 
