@@ -64,6 +64,21 @@ rotation and carries straight across boundaries, exactly as the picture does.
 **The tracklist renders the current cycle's order,** not the library's, so its
 numbers match the counter. Rebuilt when the cycle turns.
 
+## The loader
+
+Shown over everything (z-index 20) until three real milestones land: the stencil
+font, the first video clip, and the audio's metadata. It is not a timed animation —
+the bar reflects what has actually arrived.
+
+**Its wordmark is hardcoded in the HTML**, not set from `STATION.name`, because it
+has to paint before any script runs. Change the station name and you change it in two
+places.
+
+Two things keep it from trapping anyone: every milestone also completes on that
+resource's `error`, and a 6s timeout closes it regardless. `closeLoader()` is
+idempotent, so whichever fires first wins. Verified with every audio and video path
+404ing — it still cleared in about a second.
+
 ## Layout and type
 
 **`fitTitle()` measures the container's width, never the title's own.** `.centre` is

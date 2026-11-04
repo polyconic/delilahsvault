@@ -10,6 +10,37 @@
   let tunedIn = false;
   let started = false;
 
+  const loader   = $('#loader');
+  const loadFill = $('#loadFill');
+  const LOAD_KEYS = ['font','picture','sound'];
+  const loadSeen = new Set();
+  const loadStart = performance.now();
+  let loadShut = false;
+
+  function loadStep(key){
+    if(loadShut || loadSeen.has(key)) return;
+    loadSeen.add(key);
+    loadFill.style.width =
+      (10 + (loadSeen.size / LOAD_KEYS.length) * 90).toFixed(1) + '%';
+    if(loadSeen.size === LOAD_KEYS.length) closeLoader();
+  }
+
+  function closeLoader(){
+    if(loadShut) return;
+    loadShut = true;
+    loadFill.style.width = '100%';
+    const held = performance.now() - loadStart;
+    setTimeout(() => loader.classList.add('gone'), Math.max(260, 560 - held));
+  }
+
+  setTimeout(closeLoader, 6000);
+
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(() => loadStep('font'), () => loadStep('font'));
+  }else{
+    loadStep('font');
+  }
+
   const stationSeconds = () => Date.now()/1000;
 
   const tzParts = new Intl.DateTimeFormat('en-US', {
@@ -149,12 +180,13 @@
 
     next.onerror = () => {
       next.onerror = null;
-
+      loadStep('picture');
       deadClips.add(src);
       curVideo = -1;
     };
     next.oncanplay = () => {
       next.oncanplay = null;
+      loadStep('picture');
       next.play().catch(()=>{});
       next.classList.add('on');
       prev.classList.remove('on');
@@ -384,7 +416,6 @@
 
   $('#stationName').textContent = STATION.name;
   document.title                = STATION.title;
-  document.title = STATION.title;
 
   Visuals.init($('#viz'));
   buildSchedule();
@@ -495,6 +526,9 @@
   }catch(e){}
   applyVolume(savedVol, true);
   lastVolume = savedVol > 0.001 ? savedVol : 1;
+
+  au.addEventListener('loadedmetadata', () => loadStep('sound'));
+  au.addEventListener('error',           () => loadStep('sound'));
 
   tuneTo();
   hud();
