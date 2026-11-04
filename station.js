@@ -155,7 +155,7 @@ const SCHEDULE = [
     start: 0,
     name:  "NIGHT SHIFT",
     note:  "uninterrupted, for those still awake",
-    visual:"spectrum",
+    visual:"ember",
   },
   {
     start: 7,
@@ -185,6 +185,6 @@ const SCHEDULE = [
     start: 21,
     name:  "LATE TRANSMISSION",
     note:  "louder as it gets later",
-    visual:"spectrum",
+    visual:"ember",
   },
 ];

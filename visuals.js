@@ -3,8 +3,11 @@
 
    One canvas, several modes. Which one is painting is decided by the
    schedule, so the picture changes through the day along with the
-   sound. All greyscale, all low contrast — this sits behind type and
-   must never compete with it.
+   sound.
+
+   Nothing here draws the music. Every mode is a soft field of light
+   painted from gradients, so none of them has a hard edge. All one
+   near-neutral white — this sits behind type and must not compete.
    ================================================================== */
 
 const Visuals = (function(){
@@ -12,25 +15,11 @@ const Visuals = (function(){
   let cvs, ctx, analyser, freq;
   let W = 0, H = 0;
 
-  // spectrum state
-  const EASE = 0.045;
-  let N, target, level, shaped;
-
-  function allocate(){
-    const n = Math.max(56, Math.min(140, Math.round(innerWidth/6.5)));
-    if(n === N) return;
-    N = n;
-    target = new Float32Array(N);
-    level  = new Float32Array(N);
-    shaped = new Float32Array(N);
-  }
-
   function fit(){
     const r = Math.min(window.devicePixelRatio || 1, 2);
     W = innerWidth; H = innerHeight;
     cvs.width = W*r; cvs.height = H*r;
     ctx.setTransform(r,0,0,r,0,0);
-    allocate();
   }
 
   function init(canvas){
@@ -45,28 +34,17 @@ const Visuals = (function(){
     freq = new Uint8Array(a.frequencyBinCount);
   }
 
-  /* ---------- shared reads --------------------------------------- */
+  /* ---------- listening ---------------------------------------- */
 
-  function readBands(){
-    const usable = Math.floor(freq.length * 0.55);
-    for(let i=0;i<N;i++){
-      const lo = Math.floor(Math.pow(i/N, 1.85) * usable);
-      const hi = Math.max(lo+1, Math.floor(Math.pow((i+1)/N, 1.85) * usable));
-      let sum = 0;
-      for(let k=lo;k<hi;k++) sum += freq[k];
-      target[i] = (sum/(hi-lo))/255;
-    }
-    for(let i=0;i<N;i++) level[i] += (target[i]-level[i])*EASE;
-    const R = 3;
-    for(let i=0;i<N;i++){
-      let s=0, w=0;
-      for(let k=-R;k<=R;k++){
-        const j=i+k; if(j<0||j>=N) continue;
-        const q = 1 - Math.abs(k)/(R+1);
-        s += level[j]*q; w += q;
-      }
-      shaped[i] = s/w;
-    }
+  function listen(){
+    if(!analyser) return {low:0, high:0};
+    analyser.getByteFrequencyData(freq);
+    let low = 0, high = 0;
+    for(let k=2;k<26;k++) low += freq[k];
+    const a = Math.floor(freq.length*0.26);
+    const b = Math.floor(freq.length*0.60);
+    for(let k=a;k<b;k++) high += freq[k];
+    return {low: low/(24*255), high: high/((b-a)*255)};
   }
 
   // the vertical extent the visuals are allowed to occupy, measured
@@ -80,95 +58,98 @@ const Visuals = (function(){
     return {mid, top, bot, room: Math.max(30, Math.min(mid-top, bot-mid))};
   }
 
-  /* ---------- modes ---------------------------------------------- */
+  const LIGHT = '241,241,240';
+  const a3 = n => Math.max(0, n).toFixed(3);
 
-  /* The waveform is the station's signature, so it has to read the same
-     in every block — only what sits behind it changes. Modes call this
-     last, over their own backdrop. */
-  function waveform(now, glow){
-    readBands();
-    const {mid, room} = bounds();
-    const amp  = Math.min(H*0.30, 270, room/1.45);
-    const gain = 0.80 + glow*0.35;
-    const step = W/N;
-
-    ctx.lineCap = 'round';
-    ctx.lineWidth = 1;
-
-    for(let i=0;i<N;i++){
-      const u = i/(N-1);
-      const x = u*W + step/2;
-      const taper = Math.pow(Math.sin(Math.PI*u), 0.5);
-      const swell = 1 + 0.26*Math.sin(now*0.30 - u*9.5);
-      const v = Math.pow(shaped[i], 1.1);
-      const h = v*amp*taper*swell*gain;
-      if(h < 0.4) continue;
-      ctx.strokeStyle = `rgba(240,240,240,${(0.05+v*0.5).toFixed(3)})`;
-      ctx.beginPath();
-      ctx.moveTo(x, mid-h); ctx.lineTo(x, mid+h);
-      ctx.stroke();
-    }
-
-    ctx.strokeStyle = `rgba(240,240,240,${(0.05+glow*0.10).toFixed(3)})`;
-    ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(W,mid); ctx.stroke();
+  function bloom(x, y, r, rgb, alpha){
+    if(r <= 1 || alpha <= 0.001) return;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0,   `rgba(${rgb},${a3(alpha)})`);
+    g.addColorStop(.40, `rgba(${rgb},${a3(alpha*0.46)})`);
+    g.addColorStop(.72, `rgba(${rgb},${a3(alpha*0.13)})`);
+    g.addColorStop(1,   `rgba(${rgb},0)`);
+    ctx.fillStyle = g;
+    // only the square the gradient reaches, not the whole canvas
+    const x0 = Math.max(0, x-r), y0 = Math.max(0, y-r);
+    ctx.fillRect(x0, y0, Math.min(W, x+r)-x0, Math.min(H, y+r)-y0);
   }
 
-  // nothing behind it
-  const spectrum = waveform;
+  /* ---------- modes ----------------------------------------------- */
+
+  // low in the frame, rising on the bass over a slow breath of its own
+  function ember(now, glow, air){
+    const {mid, room} = bounds();
+    const breath = 0.5 + 0.5*Math.sin(now*0.085);
+    const sway   = Math.sin(now*0.047);
+
+    bloom(W*(0.5 + sway*0.09), mid + room*0.34,
+          room*(1.75 + breath*0.5 + glow*1.05),
+          LIGHT, 0.050 + glow*0.115 + breath*0.011);
+
+    bloom(W*(0.5 - sway*0.16), mid - room*0.22,
+          room*(1.15 + glow*0.55),
+          LIGHT, 0.013 + air*0.045);
+  }
 
   // a lit band on the horizon, breathing
-  function horizon(now, glow){
+  function horizon(now, glow, air){
     const {mid, room} = bounds();
-    const amp = Math.min(room*0.85, 210);
+    const breath = 0.5 + 0.5*Math.sin(now*0.062);
+    const amp    = Math.min(room*(0.80 + breath*0.22), 240);
+    const lift   = Math.sin(now*0.033) * room*0.07;
+    const y      = mid + lift;
 
-    // luminous band
-    const g = ctx.createLinearGradient(0, mid-amp, 0, mid+amp);
-    g.addColorStop(0,   'rgba(240,240,240,0)');
-    g.addColorStop(.42, `rgba(240,240,240,${(0.020+glow*0.05).toFixed(3)})`);
-    g.addColorStop(.5,  `rgba(240,240,240,${(0.070+glow*0.10).toFixed(3)})`);
-    g.addColorStop(.58, `rgba(240,240,240,${(0.020+glow*0.05).toFixed(3)})`);
-    g.addColorStop(1,   'rgba(240,240,240,0)');
+    const g = ctx.createLinearGradient(0, y-amp, 0, y+amp);
+    g.addColorStop(0,   `rgba(${LIGHT},0)`);
+    g.addColorStop(.40, `rgba(${LIGHT},${a3(0.018+glow*0.048)})`);
+    g.addColorStop(.50, `rgba(${LIGHT},${a3(0.062+glow*0.095)})`);
+    g.addColorStop(.60, `rgba(${LIGHT},${a3(0.016+glow*0.044)})`);
+    g.addColorStop(1,   `rgba(${LIGHT},0)`);
     ctx.fillStyle = g;
-    ctx.fillRect(0, mid-amp, W, amp*2);
+    ctx.fillRect(0, y-amp, W, amp*2);
 
-    waveform(now, glow);
+    bloom(W*(0.5 + Math.sin(now*0.028)*0.26), y,
+          room*(1.3 + glow*0.6),
+          LIGHT, 0.012 + air*0.042);
   }
 
-  // wide slow bands, like a monitor slightly off-tune
-  function drift(now, glow){
+  // wide slow bands, each fading out at both its own edges
+  function drift(now, glow, air){
     const {mid, room} = bounds();
+    const span  = room*2;
+    const bands = 6;
 
-    const bands = 7;
     for(let i=0;i<bands;i++){
       const p = i/bands;
-      const y = mid - room + ((now*7*(0.4+p) + p*room*2) % (room*2));
-      const h = 2 + p*26;
-      const a = (0.012 + (1-p)*0.030 + glow*0.02);
-      ctx.fillStyle = `rgba(240,240,240,${a.toFixed(3)})`;
+      const h = 26 + p*120;
+      const y = mid - room + (((now*5.5*(0.35+p) + p*span) % (span + h*2)) - h);
+      const a = (0.014 + (1-p)*0.034 + glow*0.028) * (0.7 + 0.3*Math.sin(now*0.09 + p*5));
+
+      const g = ctx.createLinearGradient(0, y, 0, y+h);
+      g.addColorStop(0,  `rgba(${LIGHT},0)`);
+      g.addColorStop(.5, `rgba(${LIGHT},${a3(a)})`);
+      g.addColorStop(1,  `rgba(${LIGHT},0)`);
+      ctx.fillStyle = g;
       ctx.fillRect(0, y, W, h);
     }
 
-    waveform(now, glow);
+    bloom(W*0.5, mid, room*(1.5 + glow*0.7), LIGHT, 0.010 + air*0.034);
   }
 
-  const MODES = {spectrum, horizon, drift};
+  const MODES = {ember, horizon, drift};
 
   /* ---------- frame ---------------------------------------------- */
 
-  let glow = 0;
+  let glow = 0, air = 0;
 
   function draw(mode, now){
     ctx.clearRect(0,0,W,H);
 
-    let bass = 0;
-    if(analyser){
-      analyser.getByteFrequencyData(freq);
-      for(let k=2;k<26;k++) bass += freq[k];
-      bass /= (24*255);
-    }
-    glow += (bass - glow) * 0.04;
+    const r = listen();
+    glow += (r.low  - glow) * 0.04;
+    air  += (r.high - air ) * 0.03;
 
-    (MODES[mode] || spectrum)(now, glow);
+    (MODES[mode] || ember)(now, glow, air);
     return glow;
   }
 

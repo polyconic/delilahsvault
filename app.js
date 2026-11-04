@@ -311,7 +311,11 @@
     }
 
     // a very long title can still stack up too many lines
-    const maxH = innerHeight * 0.42;
+    const bs = getComputedStyle(box);
+    let used = (parseFloat(bs.paddingTop)||0) + (parseFloat(bs.paddingBottom)||0)
+             + (parseFloat(bs.rowGap)||0) * Math.max(0, box.children.length - 1);
+    for(const el of box.children) if(el !== titleEl) used += el.offsetHeight;
+    const maxH = Math.max(80, box.clientHeight - used);
     let guard = 0;
     while(titleEl.offsetHeight > maxH && guard++ < 12){
       titleEl.style.fontSize =
@@ -482,7 +486,7 @@
   /* ---------- start ---------------------------------------------- */
 
   $('#stationName').textContent = STATION.name;
-  $('#gateName').textContent    = STATION.title;
+  document.title                = STATION.title;
   document.title = STATION.title;
 
   Visuals.init($('#viz'));

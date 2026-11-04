@@ -26,22 +26,31 @@
 <meta name="twitter:description" content="A stream in perpetuity. Always live, always already in progress.">
 <meta name="twitter:image"       content="https://delilahsvault.com/dv.png">
 <style>
+  /* logo font — only the letters of DELILAH'S VAULT exist in it */
+  @font-face{
+    font-family:'Vault Stencil';
+    src:url('fonts/VaultStencil-Regular.ttf') format('truetype');
+    font-weight:400; font-style:normal; font-display:block;
+  }
+
   :root{
-    --bg:#0f0f0f;
-    --ink:#f0f0f0;
+    --bg:#0b0b0c;
+    --ink:#f1f1f0;
     /* dim/dimmer/quiet used to be three different greys for a text
        hierarchy — that read as "some text is grey, some is white."
        All three now equal --ink: every label on the page is the same
-       white. --hair is a structural line colour, not text, untouched. */
-    --dim:#f0f0f0;
-    --dimmer:#f0f0f0;
-    --hair:#2b2b2b;
-    --quiet:#f0f0f0;
-    --live:#e02b1d;              /* the on-air lamp — the only colour here */
+       white. --hair is a structural line colour, not text. */
+    --dim:#f1f1f0;
+    --dimmer:#f1f1f0;
+    --hair:rgba(241,241,240,.14);
+    --quiet:#f1f1f0;
+    --live:#d9452c;              /* the on-air lamp — the only colour here */
     --font:'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --mark:'Vault Stencil','Helvetica Neue',Helvetica,sans-serif;
   }
 
   *{box-sizing:border-box;margin:0;padding:0;}
+  i{font-style:normal;}
   /* readable by search engines, screen readers and AI tools; the page is almost all video and a canvas */
   .about{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
   /* In-app browsers (Instagram, Facebook) auto-inflate text, which
@@ -70,16 +79,21 @@
     position:fixed; inset:0; width:100%; height:100%;
     object-fit:cover; z-index:0;
     opacity:0; transition:opacity 2.6s ease;
-    filter:grayscale(1) contrast(1.15) brightness(.34);
+    filter:grayscale(1) contrast(1.1) brightness(.35);
     pointer-events:none;
   }
-  .bg.on{opacity:.46;}
+  .bg.on{opacity:.5;}
 
   .hearth{
     position:fixed; inset:0; z-index:1; pointer-events:none;
     background:
-      radial-gradient(62vw 62vw at 20% 64%, rgba(240,240,240,.05), transparent 68%),
-      radial-gradient(50vw 50vw at 80% 28%, rgba(240,240,240,.03), transparent 70%);
+      radial-gradient(66vw 66vw at 18% 68%, rgba(241,241,240,.055), transparent 70%),
+      radial-gradient(54vw 54vw at 82% 24%, rgba(241,241,240,.035), transparent 72%);
+    animation:hearth 26s ease-in-out infinite alternate;
+  }
+  @keyframes hearth{
+    from{opacity:.8; transform:scale(1)}
+    to  {opacity:1;  transform:scale(1.07)}
   }
 
   /* footage varies wildly in brightness; this protects the HUD at top
@@ -87,8 +101,8 @@
   .scrim{
     position:fixed; inset:0; z-index:1; pointer-events:none;
     background:linear-gradient(to bottom,
-      rgba(15,15,15,.92) 0%, rgba(15,15,15,.55) 14%, rgba(15,15,15,0) 30%,
-      rgba(15,15,15,0) 62%, rgba(15,15,15,.62) 84%, rgba(15,15,15,.93) 100%);
+      rgba(11,11,12,.92) 0%, rgba(11,11,12,.55) 14%, rgba(11,11,12,0) 30%,
+      rgba(11,11,12,0) 62%, rgba(11,11,12,.62) 84%, rgba(11,11,12,.93) 100%);
   }
 
   #viz{position:fixed; inset:0; width:100%; height:100%; z-index:2;}
@@ -100,14 +114,14 @@
   .vignette{
     position:fixed; inset:0; pointer-events:none; z-index:2;
     background:radial-gradient(ellipse at 50% 46%,
-      rgba(0,0,0,0) 30%, rgba(0,0,0,.5) 78%, rgba(0,0,0,.8) 100%);
+      rgba(8,8,10,0) 30%, rgba(8,8,10,.5) 78%, rgba(8,8,10,.82) 100%);
   }
 
   .grain{
     position:fixed; inset:-40%; pointer-events:none; z-index:2;
-    opacity:.10; mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.62' numOctaves='4'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-    animation:drift 11s ease-in-out infinite alternate;
+    opacity:.17; mix-blend-mode:soft-light;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.40' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation:drift 19s ease-in-out infinite alternate;
   }
   @keyframes drift{from{transform:translate(0,0)} to{transform:translate(1.5%,-1.5%)}}
 
@@ -126,31 +140,55 @@
   }
   body.sched-open .stage{opacity:0; pointer-events:none;}
 
-  /* ---------- header ---------- */
+  /* ---------- the masthead ---------- */
   header{
-    display:flex; justify-content:space-between; align-items:flex-start; gap:24px;
+    display:flex; flex-direction:column; gap:clamp(9px,1.3vw,15px);
     font-size:clamp(10px,1.05vw,11px);
     letter-spacing:.2em; text-transform:uppercase;
     color:var(--dim);
+    container-type:inline-size;
+  }
+
+  .mark{
+    font-family:var(--mark); font-weight:400;
+    /* 8.26 = the string's own advance width plus its tracking; recompute
+       it if the name changes. .8 = 1 minus the face's descent, which puts
+       the cap tops on the page margin. First line is the fallback. */
+    font-size:11vw;
+    font-size:calc(100cqw / 8.26);
+    line-height:.8; letter-spacing:.015em;
+    white-space:nowrap; color:var(--ink);
+    text-shadow:0 0 90px rgba(241,241,240,.13);
+  }
+
+  .hudline{
+    display:flex; justify-content:space-between; align-items:center; gap:20px;
+    padding-top:clamp(7px,1vw,11px);
+    border-top:1px solid var(--hair);
   }
   .onair{display:flex; align-items:center; gap:10px; color:var(--ink);}
   .ember{
     width:7px; height:7px; border-radius:50%; background:var(--live);
-    box-shadow:0 0 10px var(--live), 0 0 22px rgba(224,43,29,.55);
-    animation:breathe 4.6s ease-in-out infinite;
+    box-shadow:0 0 12px var(--live), 0 0 26px rgba(217,69,44,.5);
+    animation:breathe 6.4s ease-in-out infinite;
   }
   @keyframes breathe{
-    0%,100%{opacity:1; box-shadow:0 0 10px var(--live), 0 0 22px rgba(224,43,29,.55);}
-    50%    {opacity:.5; box-shadow:0 0 6px var(--live),  0 0 12px rgba(224,43,29,.3);}
+    0%,100%{opacity:1; box-shadow:0 0 12px var(--live), 0 0 26px rgba(217,69,44,.5);}
+    50%    {opacity:.46; box-shadow:0 0 7px var(--live), 0 0 14px rgba(217,69,44,.26);}
   }
-  header .right{text-align:right; line-height:2; font-variant-numeric:tabular-nums;}
+  header .right{
+    display:flex; align-items:center; gap:clamp(8px,1.4vw,16px);
+    font-variant-numeric:tabular-nums; white-space:nowrap;
+  }
+  header .right .sep{opacity:.4;}
   #clock{color:var(--ink);}
 
   /* ---------- centre ---------- */
   .centre{
     display:flex; flex-direction:column; justify-content:center;
     align-items:flex-start; gap:clamp(8px,1.3vw,14px);
-    padding-bottom:clamp(90px,24vh,260px);
+    padding-bottom:clamp(70px,17vh,190px);
+    min-height:0;   /* or a tall title grows the row and shoves the footer off */
   }
 
   .block{
@@ -159,15 +197,15 @@
     letter-spacing:.26em; text-transform:uppercase; color:var(--ink);
   }
   .block .note{
-    font-style:italic; text-transform:none; letter-spacing:.04em;
+    font-weight:400; text-transform:none; letter-spacing:.03em;
     color:var(--quiet); font-size:clamp(11px,1.15vw,13px);
   }
 
   #title{
-    font-size:clamp(50px,13.5vw,200px);
-    font-weight:300; line-height:.9; letter-spacing:-.025em;
+    font-size:clamp(46px,8.8vw,124px);
+    font-weight:300; line-height:.92; letter-spacing:-.022em;
     text-wrap:balance;
-    text-shadow:0 0 70px rgba(240,240,240,.14);
+    text-shadow:0 0 70px rgba(241,241,240,.16);
     /* last-resort net: if the JS fit is ever wrong — a substituted font,
        an in-app browser rendering at a size we didn't measure — break the
        word instead of letting it run off the screen. Should not normally
@@ -186,25 +224,34 @@
   #by:empty{display:none;}
 
   /* ---------- footer ---------- */
-  footer{display:flex; flex-direction:column; gap:13px;}
+  footer{display:flex; flex-direction:column; gap:clamp(13px,1.5vw,17px);}
 
   .blockline{
     display:flex; align-items:center; gap:14px;
     font-size:clamp(9px,.98vw,11px);
     letter-spacing:.2em; text-transform:uppercase; color:var(--dimmer);
   }
-  .blockbar{position:relative; flex:1; height:1px; background:var(--hair);}
-  .blockbar i{position:absolute; inset:0 auto 0 0; background:var(--dimmer); width:0%;}
+  .blockbar{
+    position:relative; flex:1; height:2px; border-radius:999px;
+    background:rgba(241,241,240,.12);
+  }
+  .blockbar i{
+    position:absolute; inset:0 auto 0 0; width:0%;
+    border-radius:999px; background:rgba(241,241,240,.6);
+  }
 
-  .bar{position:relative; height:1px; width:100%; background:var(--hair);}
+  .bar{
+    position:relative; height:clamp(8px,1.05vw,13px); width:100%;
+    border-radius:999px;
+    background:rgba(241,241,240,.10);
+    box-shadow:inset 0 0 0 1px rgba(241,241,240,.07);
+  }
   .bar i{
     position:absolute; inset:0 auto 0 0; width:0%;
-    background:linear-gradient(90deg, rgba(240,240,240,.22), var(--ink));
-  }
-  .bar i::after{
-    content:''; position:absolute; right:-2px; top:-2px;
-    width:5px; height:5px; border-radius:50%; background:var(--ink);
-    box-shadow:0 0 10px rgba(240,240,240,.85);
+    border-radius:999px;
+    background:linear-gradient(90deg,
+      rgba(241,241,240,.34), rgba(241,241,240,.8) 72%, var(--ink));
+    box-shadow:0 0 16px rgba(241,241,240,.22);
   }
 
   .times{
@@ -236,7 +283,7 @@
     /* scrolls once the track lists are expanded — margin:auto on the
        inner keeps it centred when short without clipping when tall */
     display:flex; overflow-y:auto; overscroll-behavior:contain;
-    background:rgba(15,15,15,.93);
+    background:rgba(11,11,12,.94);
     opacity:0; visibility:hidden; transition:opacity .5s, visibility .5s;
     cursor:pointer;
   }
@@ -281,14 +328,14 @@
   .srow{
     display:grid; grid-template-columns:auto 1fr auto auto;
     gap:clamp(10px,2.4vw,26px); align-items:baseline;
-    padding:13px 0; border-bottom:1px solid rgba(43,43,43,.6);
+    padding:14px 0; border-bottom:1px solid rgba(241,241,240,.09);
     font-size:clamp(10px,1.05vw,12px);
     letter-spacing:.16em; text-transform:uppercase; color:var(--dimmer);
     transition:color .3s;
   }
   .srow .shour{font-variant-numeric:tabular-nums; color:var(--dim);}
   .srow .sname{letter-spacing:.22em;}
-  .srow .skind{font-style:italic; text-transform:none; letter-spacing:.04em;}
+  .srow .skind{text-transform:none; letter-spacing:.06em;}
   .srow .sto{font-variant-numeric:tabular-nums;}
   .srow.now{color:var(--ink);}
   .srow.now .shour{color:var(--ink);}
@@ -308,7 +355,7 @@
   .stracks{
     display:none;
     padding:4px 0 14px;
-    border-bottom:1px solid rgba(43,43,43,.6);
+    border-bottom:1px solid rgba(241,241,240,.09);
   }
   .sgroup.open .stracks{display:block;}
 
@@ -340,11 +387,12 @@
   .strack.playing{color:var(--ink);}
   .strack.playing .snum, .strack.playing .slen{color:var(--ink);}
   .schedfoot{
-    margin-top:18px; font-size:clamp(9px,1vw,11px);
-    font-style:italic; letter-spacing:.04em; color:var(--dimmer);
-    line-height:1.8; max-width:62ch;
+    margin-top:20px; font-weight:400;
+    font-size:clamp(10.5px,1.08vw,12.5px);
+    letter-spacing:.05em; color:var(--dimmer);
+    line-height:1.85; max-width:62ch;
   }
-  .schedfoot em{color:var(--quiet); font-style:italic;}
+  .schedfoot em{color:var(--quiet); font-style:normal;}
 
   .credits{margin-top:26px; padding-top:16px; border-top:1px solid var(--hair);}
   .chead{
@@ -356,7 +404,7 @@
     font-size:clamp(9px,.95vw,10.5px); letter-spacing:.05em;
     color:var(--dimmer); padding:4px 0; line-height:1.6;
   }
-  .crow i{font-style:italic;}
+  .crow i{font-style:normal;}
   .crow span:last-child{text-align:right; white-space:nowrap;}
   /* inherit the white rather than take the browser's blue — a faint
      rule marks them as links without breaking the monochrome */
@@ -384,30 +432,22 @@
        "already in progress". The centre is darkened further because the
        gate text lands directly on top of the huge track title, and the
        two were competing. */
-    background:radial-gradient(42vw 34vw at 50% 50%,
-                 rgba(15,15,15,.62), transparent 72%),
-               rgba(15,15,15,.55);
-    backdrop-filter:blur(2px);
+    background:radial-gradient(40vw 24vw at 50% 76%,
+                 rgba(11,11,12,.9), rgba(11,11,12,.34) 70%, transparent 86%),
+               rgba(11,11,12,.5);
+    backdrop-filter:blur(3px);
     display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:clamp(20px,2.8vw,32px);
+    align-items:center; justify-content:flex-end; gap:clamp(13px,1.7vw,19px);
+    padding-bottom:clamp(110px,21vh,210px);
     cursor:pointer;
     transition:opacity 1.2s ease, visibility 1.2s;
   }
   .gate.gone{opacity:0; visibility:hidden; pointer-events:none;}
 
-  .gate .gname{
-    font-size:clamp(26px,4.6vw,58px); font-weight:300;
-    letter-spacing:-.01em; color:var(--ink);
-    text-shadow:0 0 30px rgba(15,15,15,.95), 0 0 60px rgba(15,15,15,.8);
-  }
-  .gate .grule{
-    width:clamp(120px,17vw,220px); height:1px;
-    background:linear-gradient(90deg,transparent,var(--dimmer),transparent);
-  }
   .gate .tune{
     display:flex; align-items:center; gap:13px;
     background:transparent; border:0; cursor:pointer;
-    font-family:var(--font); font-weight:700; font-style:italic;
+    font-family:var(--font); font-weight:400;
     font-size:clamp(15px,1.7vw,20px);
     letter-spacing:.3em; color:var(--ink);
     padding:12px 4px 13px; position:relative;
@@ -426,8 +466,8 @@
   .gate:hover .tune{letter-spacing:.4em;}
   .gate:hover .tune::after{width:100%;}
   .gate .gsub{
-    font-style:italic; font-size:clamp(11px,1.15vw,13px);
-    letter-spacing:.08em; color:var(--dimmer);
+    font-weight:400; font-size:clamp(10.5px,1.1vw,12.5px);
+    letter-spacing:.22em; text-transform:uppercase; color:var(--dimmer);
   }
   @keyframes gatepulse{0%,100%{opacity:1}50%{opacity:.35}}
 
@@ -488,8 +528,9 @@
 
   @media (max-width:600px){
     .queue{flex-direction:column; gap:7px;}
+    .controls{justify-content:flex-start;}
     header{font-size:9px; letter-spacing:.13em;}
-    header .right{white-space:nowrap; line-height:1.9;}
+    header .right{gap:8px;}
     .meta{gap:11px; letter-spacing:.15em;}
     .block{gap:8px;}
     /* keep the track count visible on a phone — it's the thing that tells
@@ -499,10 +540,10 @@
     .srow .sto{display:none;}
     .strack{grid-template-columns:2em 1fr auto; letter-spacing:.06em;}
   }
-  @media (prefers-reduced-motion:reduce){ .grain,.ember{animation:none;} }
+  @media (prefers-reduced-motion:reduce){ .grain,.ember,.hearth{animation:none;} }
 </style>
 </head>
-<body data-visual="spectrum">
+<body data-visual="ember">
 
 <video class="bg" id="bgA" muted loop playsinline preload="auto"></video>
 <video class="bg" id="bgB" muted loop playsinline preload="auto"></video>
@@ -516,10 +557,14 @@
 
 <div class="stage">
   <header>
-    <div class="onair"><span class="ember"></span><span id="stationName">—</span></div>
-    <div class="right">
-      <div><span id="clock">--:--:--</span></div>
-      <div id="dayNo">—</div>
+    <h1 class="mark" id="stationName">—</h1>
+    <div class="hudline">
+      <div class="onair"><span class="ember"></span><span>on air</span></div>
+      <div class="right">
+        <span id="clock">--:--:--</span>
+        <span class="sep">·</span>
+        <span id="dayNo">—</span>
+      </div>
     </div>
   </header>
 
@@ -528,7 +573,7 @@
       <span id="blockName">—</span>
       <span class="note" id="blockNote"></span>
     </div>
-    <h1 id="title">—</h1>
+    <h2 id="title">—</h2>
     <div class="meta">
       <span id="by"></span>
       <span id="counter"><b id="trkNo">—</b> <span class="sep">of</span> <b id="trkTot">—</b></span>
@@ -627,8 +672,6 @@
 </div>
 
 <div class="gate" id="gate">
-  <div class="gname" id="gateName">—</div>
-  <div class="grule"></div>
   <button class="tune" id="tune">tune in</button>
   <div class="gsub">already in progress</div>
 </div>
