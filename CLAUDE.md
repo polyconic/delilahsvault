@@ -92,11 +92,14 @@ to the pixel.
 past its share and pushes the footer off the bottom — and the fit measures that row,
 so it has to report an honest height.
 
-**The masthead's `calc(100cqw / 8.26)`.** 8.26 is the advance width of
-`DELILAH'S VAULT` in this face plus its tracking. **Recompute it if the station name
-changes.** `line-height:.8` is 1 minus the face's descent, which puts the cap tops
-exactly on the page margin. The `11vw` line above it is the fallback for browsers
-without container units.
+**The loader's `calc(100cqw / 8.26)`.** 8.26 is the advance width of
+`DELILAH'S VAULT` in this face plus its tracking, so the wordmark fills `.loadinner`
+exactly. **Recompute it if the station name changes.** `line-height:.8` is 1 minus
+the face's descent, which sits the cap tops on the line box. The `8.5vw` line above
+it is the fallback for browsers without container units.
+
+**The stencil is only on the loading screen.** The masthead is the plain sans at HUD
+size; `.mark` exists for the loader alone.
 
 **The stencil is a logo font.** `fonts/VaultStencil-Regular.ttf` holds 13 glyphs:
 space, apostrophe, and `A D E H I L S T U V` — exactly the letters of the station

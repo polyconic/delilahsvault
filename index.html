@@ -121,14 +121,14 @@
     font-size:clamp(10px,1.05vw,11px);
     letter-spacing:.2em; text-transform:uppercase;
     color:var(--dim);
-    container-type:inline-size;
+  }
+
+  header h1{
+    font-size:inherit; color:var(--ink);
   }
 
   .mark{
     font-family:var(--mark); font-weight:400;
-
-    font-size:11vw;
-    font-size:calc(100cqw / 8.26);
     line-height:.8; letter-spacing:.015em;
     white-space:nowrap; color:var(--ink);
     text-shadow:0 0 90px rgba(241,241,240,.13);
@@ -533,7 +533,7 @@
 
 <div class="stage">
   <header>
-    <h1 class="mark" id="stationName">—</h1>
+    <h1 id="stationName">—</h1>
     <div class="hudline">
       <div class="onair"><span class="ember"></span><span>on air</span></div>
       <div class="right">
